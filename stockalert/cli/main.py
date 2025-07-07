@@ -42,15 +42,25 @@ def cmd_list(args: argparse.Namespace) -> None:
         if args.json:
             print_json(response)
         else:
-            alerts = response.get("data", [])
+            # Check if response is a dict with data key or direct list
+            if isinstance(response, dict) and "data" in response:
+                alerts = response["data"]
+            elif isinstance(response, list):
+                alerts = response
+            else:
+                alerts = []
+                
             if not alerts:
                 print("No alerts found")
                 return
 
             print(f"Found {len(alerts)} alerts:")
             for alert in alerts:
+                threshold = alert.get('threshold', 'N/A')
+                if threshold != 'N/A' and isinstance(threshold, (int, float)):
+                    threshold = f"${threshold}"
                 print(f"- {alert['id']}: {alert['symbol']} {alert['condition']} "
-                      f"@ ${alert.get('threshold', 'N/A')} [{alert['status']}]")
+                      f"@ {threshold} [{alert['status']}]")
     except StockAlertError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
