@@ -56,7 +56,7 @@ class AsyncStockAlert:
         # Cast config values to proper types
         base_url = cast(str, self._config["base_url"])
         timeout = cast(float, self._config["timeout"])
-        
+
         self._client = httpx.AsyncClient(
             base_url=base_url,
             timeout=timeout,
