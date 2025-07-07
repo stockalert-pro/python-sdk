@@ -1,4 +1,6 @@
 """Async client for StockAlert SDK."""
+from typing import Any, Optional
+
 # Import httpx at runtime to make it optional
 try:
     import httpx
@@ -29,8 +31,8 @@ class AsyncStockAlert:
     def __init__(
         self,
         api_key: str,
-        base_url: str = None,
-        timeout: int = None,
+        base_url: Optional[str] = None,
+        timeout: Optional[int] = None,
         max_retries: int = 3,
     ):
         if not api_key:
@@ -43,14 +45,17 @@ class AsyncStockAlert:
             "max_retries": max_retries,
         }
 
-        self._client = None
+        self._client: Optional[httpx.AsyncClient] = None
 
         # Initialize resources
-        self.alerts = AsyncAlertsResource(self._config, self)
-        self.webhooks = AsyncWebhooksResource(self._config, self)
-        self.api_keys = AsyncApiKeysResource(self._config, self)
+        # Set client reference for resources
+        self.alerts.client = self
+        self.webhooks.client = self
+        self.api_keys.client = self        self.alerts = AsyncAlertsResource(self._config)
+        self.webhooks = AsyncWebhooksResource(self._config)
+        self.api_keys = AsyncApiKeysResource(self._config)
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "AsyncStockAlert":
         self._client = httpx.AsyncClient(
             base_url=self._config["base_url"],
             timeout=self._config["timeout"],
@@ -62,7 +67,7 @@ class AsyncStockAlert:
         )
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         if self._client:
             await self._client.aclose()
 

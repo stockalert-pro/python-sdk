@@ -78,3 +78,6 @@ class WebhookPayload:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return self._raw_data
+
+# API Response types
+ApiResponse = Dict[str, Any]

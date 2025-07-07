@@ -18,7 +18,7 @@ from ..exceptions import (
 class BaseResource:
     """Base class for all API resources."""
 
-    def __init__(self, config: dict):
+    def __init__(self, config: Dict[str, Any]):
         self._config = config
         self._session = self._create_session()
 
@@ -52,7 +52,7 @@ class BaseResource:
         path: str,
         params: Optional[Dict[str, Any]] = None,
         json_data: Optional[Dict[str, Any]] = None,
-        **kwargs
+        **kwargs: Any
     ) -> Dict[str, Any]:
         url = f"{self._config['base_url']}{path}"
 
@@ -81,7 +81,7 @@ class BaseResource:
             if not response.ok:
                 self._handle_error(response, rate_limit_info)
 
-            return response.json()
+            return response.json()  # type: ignore[no-any-return]
 
         except requests.exceptions.Timeout as e:
             raise NetworkError("Request timed out") from e
@@ -90,12 +90,13 @@ class BaseResource:
         except requests.exceptions.RequestException as e:
             raise NetworkError(f"Request failed: {str(e)}") from e
 
-    def _handle_error(self, response: requests.Response, rate_limit_info: Dict[str, int]):
+    def _handle_error(self, response: requests.Response, rate_limit_info: Dict[str, int]) -> None:
         try:
             error_data = response.json()
             error_message = error_data.get("error", response.reason)
         except Exception:
             error_message = response.reason or f"HTTP {response.status_code}"
+            error_data = {}
 
         if response.status_code == 401:
             raise AuthenticationError(error_message)
@@ -105,11 +106,10 @@ class BaseResource:
             retry_after = response.headers.get("Retry-After")
             raise RateLimitError(
                 error_message,
-                retry_after=int(retry_after) if retry_after else None,
-                rate_limit_info=rate_limit_info
+                retry_after=int(retry_after) if retry_after else None
             )
         elif response.status_code == 422:
-            errors = error_data.get("errors", []) if "error_data" in locals() else []
-            raise ValidationError(error_message, errors=errors)
+            errors = error_data.get("errors", [])
+            raise ValidationError(error_message)
         else:
-            raise StockAlertError(error_message, status_code=response.status_code)
+            raise StockAlertError(error_message)

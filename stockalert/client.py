@@ -57,7 +57,15 @@ class StockAlert:
 
         # Initialize resources
         self.alerts = AlertsResource(self)
-        self.webhooks = WebhooksResource(self)
+        
+        # Create config dict for WebhooksResource
+        config = {
+            "api_key": api_key,
+            "base_url": self.base_url,
+            "timeout": self.timeout,
+            "max_retries": self.max_retries
+        }
+        self.webhooks = WebhooksResource(config)
 
         # Rate limit tracking
         self._rate_limit_reset: Dict[str, float] = {}
@@ -85,7 +93,7 @@ class StockAlert:
                     retry_after=int(wait_time)
                 )
 
-        last_error = None
+        last_error: Optional[Exception] = None
 
         for attempt in range(self.max_retries + 1):
             try:
@@ -159,8 +167,8 @@ class StockAlert:
 
         raise last_error or StockAlertError("Request failed after retries")
 
-    def __enter__(self):
+    def __enter__(self) -> "StockAlert":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         self.session.close()

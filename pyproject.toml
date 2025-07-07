@@ -131,3 +131,15 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Allow unused imports in __init__ files
+
+[[tool.mypy.overrides]]
+module = "stockalert.resources.alerts"
+no_any_return = false
+
+[[tool.mypy.overrides]]
+module = "stockalert.resources.base"
+no_any_return = false
+
+[[tool.mypy.overrides]]
+module = "stockalert.resources.async_alerts"
+no_any_return = false

@@ -1,7 +1,7 @@
 """Webhooks resource for StockAlert SDK."""
 import hashlib
 import hmac
-from typing import List, Union
+from typing import List, Optional, Union
 
 from ..types import ApiResponse
 from .base import BaseResource
@@ -19,7 +19,7 @@ class WebhooksResource(BaseResource):
         """
         return self._request("GET", "/webhooks")
 
-    def create(self, url: str, events: List[str] = None) -> ApiResponse:
+    def create(self, url: str, events: Optional[List[str]] = None) -> ApiResponse:
         """
         Create a new webhook
 
@@ -83,8 +83,9 @@ class WebhooksResource(BaseResource):
 
         Example:
             >>> payload = request.body
-            >>> signature = request.headers["X-StockAlert-Signature"]
-            >>> is_valid = WebhooksResource.verify_signature(payload, signature, secret)
+            >>> signature = request.headers.get("X-StockAlert-Signature")
+            >>> if WebhooksResource.verify_signature(payload, signature, secret):
+            ...     # Process webhook
         """
         if isinstance(payload, str):
             payload = payload.encode("utf-8")
