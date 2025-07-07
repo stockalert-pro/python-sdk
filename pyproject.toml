@@ -38,8 +38,9 @@ async = [
   "httpx>=0.24.0",
 ]
 dev = [
+  "pre-commit>=3.0.0",
   "pytest>=7.0.0",
-  "types-requests>=2.31.0,",
+  "types-requests>=2.31.0",
   "pytest-cov>=4.0.0",
   "pytest-asyncio>=0.21.0",
   "ruff>=0.1.0",
@@ -48,12 +49,12 @@ dev = [
 ]
 
 [project.urls]
-
-[project.scripts]
-stockalert = "stockalert.cli.main:main"
 Documentation = "https://docs.stockalert.pro/sdks/python"
 Issues = "https://github.com/stockalert-pro/python-sdk/issues"
 Source = "https://github.com/stockalert-pro/python-sdk"
+
+[project.scripts]
+stockalert = "stockalert.cli.main:main"
 
 [tool.hatch.version]
 path = "stockalert/__version__.py"
