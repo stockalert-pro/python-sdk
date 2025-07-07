@@ -66,3 +66,49 @@ Full documentation is available at [https://stockalert.pro/api/docs](https://sto
 ## License
 
 MIT
+## 🎯 More Examples
+
+### Pagination
+```python
+# Iterate through all alerts efficiently
+for alert in client.alerts.iterate():
+    print(f"{alert.symbol}: {alert.condition}")
+```
+
+### Error Handling
+```python
+from stockalert import StockAlert, APIError, RateLimitError
+
+try:
+    alert = client.alerts.create(
+        symbol="AAPL",
+        condition="price_above",
+        threshold=200
+    )
+except RateLimitError as e:
+    print(f"Rate limited. Retry after {e.retry_after} seconds")
+except APIError as e:
+    print(f"API error: {e.message} (status: {e.status_code})")
+```
+
+### Environment Variables
+```python
+import os
+from stockalert import StockAlert
+
+# API key from environment variable
+client = StockAlert(api_key=os.environ["STOCKALERT_API_KEY"])
+```
+
+### Async Usage
+```python
+import asyncio
+from stockalert import AsyncStockAlert
+
+async def main():
+    async with AsyncStockAlert(api_key="sk_your_api_key") as client:
+        alerts = await client.alerts.list()
+        print(f"Found {len(alerts['data'])} alerts")
+
+asyncio.run(main())
+```
