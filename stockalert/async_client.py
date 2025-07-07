@@ -48,10 +48,7 @@ class AsyncStockAlert:
         self._client: Optional[httpx.AsyncClient] = None
 
         # Initialize resources
-        # Set client reference for resources
-        self.alerts.client = self
-        self.webhooks.client = self
-        self.api_keys.client = self        self.alerts = AsyncAlertsResource(self._config)
+        self.alerts = AsyncAlertsResource(self._config)
         self.webhooks = AsyncWebhooksResource(self._config)
         self.api_keys = AsyncApiKeysResource(self._config)
 
@@ -65,6 +62,12 @@ class AsyncStockAlert:
                 "Content-Type": "application/json",
             },
         )
+
+        # Set client reference for resources
+        self.alerts.client = self
+        self.webhooks.client = self
+        self.api_keys.client = self
+
         return self
 
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:

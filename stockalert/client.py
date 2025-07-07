@@ -57,7 +57,7 @@ class StockAlert:
 
         # Initialize resources
         self.alerts = AlertsResource(self)
-        
+
         # Create config dict for WebhooksResource
         config = {
             "api_key": api_key,

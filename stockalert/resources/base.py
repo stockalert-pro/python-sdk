@@ -81,7 +81,7 @@ class BaseResource:
             if not response.ok:
                 self._handle_error(response, rate_limit_info)
 
-            return response.json()  # type: ignore[no-any-return]
+            return response.json()
 
         except requests.exceptions.Timeout as e:
             raise NetworkError("Request timed out") from e
@@ -109,7 +109,10 @@ class BaseResource:
                 retry_after=int(retry_after) if retry_after else None
             )
         elif response.status_code == 422:
-            errors = error_data.get("errors", [])
+            # Include validation errors in the message if available
+            validation_errors = error_data.get("errors", [])
+            if validation_errors:
+                error_message = f"{error_message}: {', '.join(validation_errors)}"
             raise ValidationError(error_message)
         else:
             raise StockAlertError(error_message)
