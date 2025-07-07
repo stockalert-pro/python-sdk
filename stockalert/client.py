@@ -1,7 +1,6 @@
 """StockAlert Python SDK Client."""
 import time
 from typing import Any, Dict, Optional
-from urllib.parse import urljoin
 
 import requests
 
@@ -79,7 +78,8 @@ class StockAlert:
         timeout: Optional[int] = None,
     ) -> Any:
         """Make an HTTP request to the API."""
-        url = urljoin(self.base_url, path)
+        # Don't use urljoin as it removes the API path when path starts with /
+        url = self.base_url.rstrip("/") + "/" + path.lstrip("/")
         timeout = timeout or self.timeout
 
         # Check rate limit

@@ -54,7 +54,10 @@ class BaseResource:
         json_data: Optional[Dict[str, Any]] = None,
         **kwargs: Any
     ) -> Dict[str, Any]:
-        url = f"{self._config['base_url']}{path}"
+        # Ensure proper URL construction
+        base_url = str(self._config['base_url']).rstrip("/")
+        path = path.lstrip("/")
+        url = f"{base_url}/{path}"
 
         # Clean up params
         if params:
