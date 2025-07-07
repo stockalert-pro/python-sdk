@@ -16,7 +16,7 @@ logger.addHandler(logging.NullHandler())
 def enable_debug_logging():
     """Enable debug logging for the SDK."""
     logger.setLevel(logging.DEBUG)
-    
+
     # Add console handler if none exists
     if not logger.handlers:
         handler = logging.StreamHandler()

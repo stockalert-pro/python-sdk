@@ -3,7 +3,7 @@ import argparse
 import json
 import os
 import sys
-from typing import Any, Dict
+from typing import Any
 
 from stockalert import StockAlert, __version__
 from stockalert.exceptions import StockAlertError
@@ -27,7 +27,7 @@ def get_client() -> StockAlert:
 def cmd_list(args: argparse.Namespace) -> None:
     """List alerts command."""
     client = get_client()
-    
+
     params = {}
     if args.symbol:
         params["symbol"] = args.symbol
@@ -35,10 +35,10 @@ def cmd_list(args: argparse.Namespace) -> None:
         params["status"] = args.status
     if args.limit:
         params["limit"] = args.limit
-        
+
     try:
         response = client.alerts.list(**params)
-        
+
         if args.json:
             print_json(response)
         else:
@@ -46,7 +46,7 @@ def cmd_list(args: argparse.Namespace) -> None:
             if not alerts:
                 print("No alerts found")
                 return
-                
+
             print(f"Found {len(alerts)} alerts:")
             for alert in alerts:
                 print(f"- {alert['id']}: {alert['symbol']} {alert['condition']} "
@@ -59,22 +59,22 @@ def cmd_list(args: argparse.Namespace) -> None:
 def cmd_create(args: argparse.Namespace) -> None:
     """Create alert command."""
     client = get_client()
-    
+
     data = {
         "symbol": args.symbol,
         "condition": args.condition,
         "notification": args.notification or "email"
     }
-    
+
     if args.threshold:
         data["threshold"] = args.threshold
-        
+
     if args.parameters:
         data["parameters"] = json.loads(args.parameters)
-        
+
     try:
         alert = client.alerts.create(**data)
-        
+
         if args.json:
             print_json(alert.to_dict())
         else:
@@ -91,10 +91,10 @@ def cmd_create(args: argparse.Namespace) -> None:
 def cmd_get(args: argparse.Namespace) -> None:
     """Get alert command."""
     client = get_client()
-    
+
     try:
         alert = client.alerts.get(args.alert_id)
-        
+
         if args.json:
             print_json(alert.to_dict())
         else:
@@ -114,14 +114,14 @@ def cmd_get(args: argparse.Namespace) -> None:
 def cmd_delete(args: argparse.Namespace) -> None:
     """Delete alert command."""
     client = get_client()
-    
+
     try:
         if not args.force:
             response = input(f"Delete alert {args.alert_id}? [y/N] ")
             if response.lower() != "y":
                 print("Cancelled")
                 return
-                
+
         client.alerts.delete(args.alert_id)
         print(f"✅ Alert {args.alert_id} deleted")
     except StockAlertError as e:
@@ -132,7 +132,7 @@ def cmd_delete(args: argparse.Namespace) -> None:
 def cmd_pause(args: argparse.Namespace) -> None:
     """Pause alert command."""
     client = get_client()
-    
+
     try:
         alert = client.alerts.update(args.alert_id, "paused")
         print(f"✅ Alert {alert.id} paused")
@@ -144,7 +144,7 @@ def cmd_pause(args: argparse.Namespace) -> None:
 def cmd_activate(args: argparse.Namespace) -> None:
     """Activate alert command."""
     client = get_client()
-    
+
     try:
         alert = client.alerts.update(args.alert_id, "active")
         print(f"✅ Alert {alert.id} activated")
@@ -159,9 +159,9 @@ def main() -> None:
         description="StockAlert CLI - Manage stock alerts from the command line"
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
-    
+
     subparsers = parser.add_subparsers(dest="command", help="Commands")
-    
+
     # List command
     list_parser = subparsers.add_parser("list", help="List alerts")
     list_parser.add_argument("-s", "--symbol", help="Filter by symbol")
@@ -169,7 +169,7 @@ def main() -> None:
     list_parser.add_argument("-l", "--limit", type=int, help="Limit results")
     list_parser.add_argument("-j", "--json", action="store_true", help="Output as JSON")
     list_parser.set_defaults(func=cmd_list)
-    
+
     # Create command
     create_parser = subparsers.add_parser("create", help="Create an alert")
     create_parser.add_argument("symbol", help="Stock symbol")
@@ -179,36 +179,36 @@ def main() -> None:
     create_parser.add_argument("-p", "--parameters", help="Additional parameters as JSON")
     create_parser.add_argument("-j", "--json", action="store_true", help="Output as JSON")
     create_parser.set_defaults(func=cmd_create)
-    
+
     # Get command
     get_parser = subparsers.add_parser("get", help="Get alert details")
     get_parser.add_argument("alert_id", help="Alert ID")
     get_parser.add_argument("-j", "--json", action="store_true", help="Output as JSON")
     get_parser.set_defaults(func=cmd_get)
-    
+
     # Delete command
     delete_parser = subparsers.add_parser("delete", help="Delete an alert")
     delete_parser.add_argument("alert_id", help="Alert ID")
     delete_parser.add_argument("-f", "--force", action="store_true", help="Skip confirmation")
     delete_parser.set_defaults(func=cmd_delete)
-    
+
     # Pause command
     pause_parser = subparsers.add_parser("pause", help="Pause an alert")
     pause_parser.add_argument("alert_id", help="Alert ID")
     pause_parser.set_defaults(func=cmd_pause)
-    
+
     # Activate command
     activate_parser = subparsers.add_parser("activate", help="Activate an alert")
     activate_parser.add_argument("alert_id", help="Alert ID")
     activate_parser.set_defaults(func=cmd_activate)
-    
+
     # Parse arguments
     args = parser.parse_args()
-    
+
     if not args.command:
         parser.print_help()
         sys.exit(1)
-        
+
     # Execute command
     args.func(args)
 
