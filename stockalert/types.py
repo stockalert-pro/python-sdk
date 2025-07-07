@@ -1,9 +1,9 @@
-from typing import TypedDict, Literal, Optional, List, Dict, Any, Union
+"""Type definitions for StockAlert SDK."""
+from typing import Optional, List, Dict, Any, Literal, Union
 from datetime import datetime
+from enum import Enum
 
-AlertStatus = Literal["active", "paused", "triggered"]
-NotificationChannel = Literal["email", "sms"]
-
+# Alert conditions
 AlertCondition = Literal[
     "price_above",
     "price_below",
@@ -25,101 +25,58 @@ AlertCondition = Literal[
     "forward_pe_above",
     "earnings_announcement",
     "dividend_ex_date",
-    "dividend_payment",
+    "dividend_payment"
 ]
 
+# Notification channels - NO WhatsApp!
+NotificationChannel = Literal["email", "sms"]
 
-class StockInfo(TypedDict):
-    name: str
-    last_price: float
+# Alert status
+AlertStatus = Literal["active", "paused", "triggered"]
 
+class Alert:
+    """Alert object."""
+    def __init__(self, data: Dict[str, Any]):
+        self.id: str = data["id"]
+        self.symbol: str = data["symbol"]
+        self.condition: AlertCondition = data["condition"]
+        self.threshold: Optional[float] = data.get("threshold")
+        self.notification: NotificationChannel = data["notification"]
+        self.status: AlertStatus = data["status"]
+        self.created_at: datetime = datetime.fromisoformat(data["created_at"].replace('Z', '+00:00'))
+        self.updated_at: datetime = datetime.fromisoformat(data["updated_at"].replace('Z', '+00:00'))
+        self.last_triggered: Optional[datetime] = None
+        if data.get("last_triggered"):
+            self.last_triggered = datetime.fromisoformat(data["last_triggered"].replace('Z', '+00:00'))
+        self.initial_price: Optional[float] = data.get("initial_price")
+        self.parameters: Optional[Dict[str, Any]] = data.get("parameters")
+        self._raw_data = data
 
-class Alert(TypedDict):
-    id: str
-    symbol: str
-    condition: AlertCondition
-    threshold: Optional[float]
-    notification: NotificationChannel
-    status: AlertStatus
-    created_at: str
-    initial_price: float
-    parameters: Optional[Dict[str, Any]]
-    stocks: Optional[StockInfo]
+    def __repr__(self) -> str:
+        return f"<Alert {self.id}: {self.symbol} {self.condition}>"
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return self._raw_data
 
-class CreateAlertRequest(TypedDict, total=False):
-    symbol: str  # required
-    condition: AlertCondition  # required
-    threshold: Optional[float]
-    notification: NotificationChannel
-    parameters: Optional[Dict[str, Any]]
+class PaginatedResponse:
+    """Paginated response."""
+    def __init__(self, data: List[Dict[str, Any]], meta: Dict[str, Any]):
+        self.data = data
+        self.meta = meta
+        self.total = meta.get("total", 0)
+        self.limit = meta.get("limit", 100)
+        self.offset = meta.get("offset", 0)
+        self.has_more = meta.get("has_more", False)
 
+class WebhookPayload:
+    """Webhook payload."""
+    def __init__(self, data: Dict[str, Any]):
+        self.event: str = data["event"]
+        self.timestamp: datetime = datetime.fromisoformat(data["timestamp"].replace('Z', '+00:00'))
+        self.data: Dict[str, Any] = data["data"]
+        self._raw_data = data
 
-class UpdateAlertRequest(TypedDict):
-    status: Literal["active", "paused"]
-
-
-class ListAlertsParams(TypedDict, total=False):
-    page: int
-    limit: int
-    status: AlertStatus
-    condition: AlertCondition
-    search: str
-    sortField: str
-    sortDirection: Literal["asc", "desc"]
-
-
-class Pagination(TypedDict):
-    page: int
-    limit: int
-    total: int
-    totalPages: int
-
-
-class PaginatedResponse(TypedDict):
-    success: bool
-    data: List[Alert]
-    pagination: Pagination
-
-
-class ApiResponse(TypedDict):
-    success: bool
-    data: Any
-
-
-class ApiError(TypedDict):
-    success: Literal[False]
-    error: str
-
-
-class Webhook(TypedDict):
-    id: str
-    url: str
-    events: List[str]
-    secret: str
-    is_active: bool
-    created_at: str
-    last_triggered_at: Optional[str]
-    failure_count: int
-
-
-class CreateWebhookRequest(TypedDict):
-    url: str
-    events: List[str]
-
-
-class WebhookEventData(TypedDict):
-    alert_id: str
-    symbol: str
-    condition: str
-    threshold: float
-    current_value: float
-    triggered_at: str
-    reason: str
-    parameters: Optional[Dict[str, Any]]
-
-
-class WebhookPayload(TypedDict):
-    event: str
-    timestamp: str
-    data: WebhookEventData
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return self._raw_data
