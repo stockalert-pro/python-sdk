@@ -85,9 +85,9 @@ class BaseResource:
         except requests.exceptions.Timeout:
             raise NetworkError("Request timed out")
         except requests.exceptions.ConnectionError as e:
-            raise NetworkError("Connection failed", original_error=e)
+            raise NetworkError("Connection failed")
         except requests.exceptions.RequestException as e:
-            raise NetworkError(f"Request failed: {str(e)}", original_error=e)
+            raise NetworkError(f"Request failed: {str(e)}")
     
     def _handle_error(self, response: requests.Response, rate_limit_info: Dict[str, int]):
         try:

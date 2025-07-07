@@ -35,6 +35,13 @@ class ValidationError(StockAlertError):
     pass
 
 
+
+
+class NotFoundError(APIError):
+    """Resource not found error."""
+
+    def __init__(self, message: str):
+        super().__init__(message, 404)
 class NetworkError(StockAlertError):
     """Network connection error."""
     pass
