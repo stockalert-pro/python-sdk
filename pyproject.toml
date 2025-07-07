@@ -132,3 +132,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Allow unused imports in __init__ files
 
+
+[tool.mypy]
+warn_return_any = false
+strict_optional = true

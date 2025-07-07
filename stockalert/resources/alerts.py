@@ -55,7 +55,7 @@ class AlertsResource(AlertsResourceBase):
         if not alert_id:
             raise ValidationError("Alert ID is required")
 
-        return self.client._request("DELETE", f"/alerts/{alert_id}")  # type: ignore[no-any-return]("DELETE", f"/alerts/{alert_id}")
+                return self.client._request("DELETE", f"/alerts/{alert_id}")
 
     def iterate(self, **params: Any) -> Generator[Alert, None, None]:
         """Iterate through all alerts with automatic pagination."""

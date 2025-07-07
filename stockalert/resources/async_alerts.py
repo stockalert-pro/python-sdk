@@ -54,7 +54,7 @@ class AsyncAlertsResource(AlertsResourceBase):
         if not alert_id:
             raise ValidationError("Alert ID is required")
 
-        return await self.client._request("DELETE", f"/alerts/{alert_id}")  # type: ignore[no-any-return]("DELETE", f"/alerts/{alert_id}")
+                return await self.client._request("DELETE", f"/alerts/{alert_id}")
 
     async def iterate(self, **params: Any) -> AsyncGenerator[Alert, None]:
         """Iterate through all alerts with automatic pagination."""
