@@ -81,7 +81,7 @@ class BaseResource:
             if not response.ok:
                 self._handle_error(response, rate_limit_info)
 
-            return response.json()
+            return response.json()  # type: ignore[no-any-return]
 
         except requests.exceptions.Timeout as e:
             raise NetworkError("Request timed out") from e

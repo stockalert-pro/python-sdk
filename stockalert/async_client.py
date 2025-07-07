@@ -1,5 +1,5 @@
 """Async client for StockAlert SDK."""
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 # Import httpx at runtime to make it optional
 try:
@@ -53,9 +53,13 @@ class AsyncStockAlert:
         self.api_keys = AsyncApiKeysResource(self._config)
 
     async def __aenter__(self) -> "AsyncStockAlert":
+        # Cast config values to proper types
+        base_url = cast(str, self._config["base_url"])
+        timeout = cast(float, self._config["timeout"])
+        
         self._client = httpx.AsyncClient(
-            base_url=self._config["base_url"],
-            timeout=self._config["timeout"],
+            base_url=base_url,
+            timeout=timeout,
             headers={
                 "Authorization": f"Bearer {self._config['api_key']}",
                 "User-Agent": "stockalert-python/1.0.0",
@@ -65,8 +69,6 @@ class AsyncStockAlert:
 
         # Set client reference for resources
         self.alerts.client = self
-        self.webhooks.client = self
-        self.api_keys.client = self
 
         return self
 
