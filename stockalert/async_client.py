@@ -56,12 +56,13 @@ class AsyncStockAlert:
         # Cast config values to proper types
         base_url = cast(str, self._config["base_url"])
         timeout = cast(float, self._config["timeout"])
+        api_key = cast(str, self._config["api_key"])
 
         self._client = httpx.AsyncClient(
             base_url=base_url,
             timeout=timeout,
             headers={
-                "X-API-Key": self._config['api_key'],
+                "X-API-Key": api_key,
                 "User-Agent": "stockalert-python/1.0.0",
                 "Content-Type": "application/json",
             },
