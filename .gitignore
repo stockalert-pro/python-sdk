@@ -146,3 +146,105 @@ cython_debug/
 
 # Testing
 test-*.py
+
+# Ruff
+.ruff_cache/
+
+# Black
+.black_cache/
+
+# Pre-commit
+.pre-commit-config.yaml.lock
+
+# Local development
+*.local
+.python-tools/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# Security
+.secrets/
+*.pem
+*.key
+*.cert
+
+# Documentation builds
+docs/_build/
+docs/_static/
+docs/_templates/
+.doctrees/
+
+# Performance profiling
+*.prof
+*.lprof
+.prof/
+
+# Test databases
+test.db
+*.test.db
+
+# Coverage reports
+.coverage.*
+coverage.json
+coverage.lcov
+
+# Benchmarking
+.benchmarks/
+
+# Node modules (if using any JS tools)
+node_modules/
+
+# Terraform (if using infrastructure as code)
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# direnv
+.envrc
+
+# asdf
+.tool-versions
+
+# pipx
+.pipx/
+
+# PDM
+pdm.lock
+.pdm-python
+
+# Hatch
+.hatch/
+
+# Packaging
+*.whl
+*.tar.gz
+
+# Logs
+logs/
+*.log.*
+
+# IDE specific
+.vscode/
+.idea/
+*.sublime-*
+.project
+.pydevproject
+
+# OS specific
+Thumbs.db
+.Spotlight-V100
+.Trashes
+._*
+
+# Backup files
+*.backup
+*.old
+
+# Local notes
+notes.md
+TODO.md
+.notes/
