@@ -1,43 +1,34 @@
-"""
-StockAlert.pro Python SDK
-
-Official Python SDK for the StockAlert.pro API.
-"""
-
+"""StockAlert Python SDK."""
 from .client import StockAlert
-from .async_client import AsyncStockAlert
 from .exceptions import (
     StockAlertError,
-    AuthenticationError,
+    APIError,
     RateLimitError,
+    AuthenticationError,
     ValidationError,
-    NotFoundError,
     NetworkError,
 )
 from .types import (
     Alert,
-    AlertStatus,
     AlertCondition,
     NotificationChannel,
-    Webhook,
+    AlertStatus,
     WebhookPayload,
 )
-
-__version__ = "1.0.0"
+from .__version__ import __version__
 
 __all__ = [
     "StockAlert",
-    "AsyncStockAlert",
     "StockAlertError",
-    "AuthenticationError",
+    "APIError",
     "RateLimitError",
+    "AuthenticationError",
     "ValidationError",
-    "NotFoundError",
     "NetworkError",
     "Alert",
-    "AlertStatus",
     "AlertCondition",
     "NotificationChannel",
-    "Webhook",
+    "AlertStatus",
     "WebhookPayload",
+    "__version__",
 ]

@@ -3,6 +3,8 @@ name: Test
 on:
   push:
     branches: [ main, develop ]
+    tags-ignore:
+      - 'v*'  # Ignore version tags
   pull_request:
     branches: [ main ]
 
