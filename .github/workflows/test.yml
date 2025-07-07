@@ -28,16 +28,8 @@ jobs:
     
     - name: Lint with ruff
       run: |
-        ruff check . || true
-    
-    - name: Format with black
-      run: |
-        black --check . || true
-    
-    - name: Type check with mypy
-      run: |
-        mypy stockalert || true
+        ruff check stockalert || true  # Linting can be warning for now
     
     - name: Test with pytest
       run: |
-        pytest tests/ -v || echo "Tests need to be implemented"
+        pytest tests/ -v --tb=short
