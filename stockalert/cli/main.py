@@ -49,7 +49,7 @@ def cmd_list(args: argparse.Namespace) -> None:
                 alerts = response
             else:
                 alerts = []
-                
+
             if not alerts:
                 print("No alerts found")
                 return
