@@ -1,5 +1,6 @@
 """Test type definitions."""
 from datetime import datetime
+
 from stockalert.types import Alert, WebhookPayload
 
 
@@ -15,7 +16,7 @@ def test_alert_initialization():
         "created_at": "2024-01-01T00:00:00Z",
         "updated_at": "2024-01-01T00:00:00Z",
     }
-    
+
     alert = Alert(data)
     assert alert.id == "test-123"
     assert alert.symbol == "AAPL"
@@ -40,7 +41,7 @@ def test_webhook_payload_initialization():
             "current_value": 155.0,
         }
     }
-    
+
     payload = WebhookPayload(data)
     assert payload.event == "alert.triggered"
     assert isinstance(payload.timestamp, datetime)

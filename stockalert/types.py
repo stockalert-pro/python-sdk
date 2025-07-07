@@ -1,9 +1,7 @@
 """Type definitions for StockAlert SDK."""
-from typing import Optional, List, Dict, Any, Literal, Union
 from datetime import datetime
-from enum import Enum
+from typing import Any, Dict, List, Literal, Optional
 
-# Alert conditions
 AlertCondition = Literal[
     "price_above",
     "price_below",
