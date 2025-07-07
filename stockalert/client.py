@@ -49,7 +49,7 @@ class StockAlert:
         # Initialize session
         self.session = requests.Session()
         self.session.headers.update({
-            "Authorization": f"Bearer {api_key}",
+            "X-API-Key": api_key,
             "User-Agent": f"stockalert-python/{__version__}",
             "Accept": "application/json",
             "Content-Type": "application/json"

@@ -61,7 +61,7 @@ class AsyncStockAlert:
             base_url=base_url,
             timeout=timeout,
             headers={
-                "Authorization": f"Bearer {self._config['api_key']}",
+                "X-API-Key": self._config['api_key'],
                 "User-Agent": "stockalert-python/1.0.0",
                 "Content-Type": "application/json",
             },

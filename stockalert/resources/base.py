@@ -39,7 +39,7 @@ class BaseResource:
 
         # Set default headers
         session.headers.update({
-            "Authorization": f"Bearer {self._config['api_key']}",
+            "X-API-Key": self._config['api_key'],
             "Content-Type": "application/json",
             "User-Agent": "stockalert-python/1.0.0",
         })
