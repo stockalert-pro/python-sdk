@@ -48,6 +48,9 @@ dev = [
 ]
 
 [project.urls]
+
+[project.scripts]
+stockalert = "stockalert.cli.main:main"
 Documentation = "https://docs.stockalert.pro/sdks/python"
 Issues = "https://github.com/stockalert-pro/python-sdk/issues"
 Source = "https://github.com/stockalert-pro/python-sdk"

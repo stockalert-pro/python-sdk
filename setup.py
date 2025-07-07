@@ -20,6 +20,11 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/stockalert-pro/python-sdk",
+    entry_points={
+        "console_scripts": [
+            "stockalert=stockalert.cli.main:main",
+        ],
+    },
     packages=find_packages(exclude=["tests*"]),
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -40,6 +45,7 @@ setup(
     extras_require={
         "async": ["httpx>=0.24.0"],
         "dev": [
+            "pre-commit>=3.0.0",
             "pytest>=7.0.0",
             "types-requests>=2.31.0,",
             "pytest-cov>=4.0.0",
