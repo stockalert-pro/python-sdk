@@ -22,7 +22,7 @@ class AlertsResource(AlertsResourceBase):
         if "symbol" in params:
             params["symbol"] = str(params["symbol"]).upper()
 
-        response = self.client._request("GET", "/api/v1/alerts", params=params, return_full_response=True)
+        response = self.client._request("GET", "/alerts", params=params, return_full_response=True)
         return response  # type: ignore[no-any-return]
 
     def create(self, **data: Any) -> Alert:
@@ -32,7 +32,7 @@ class AlertsResource(AlertsResourceBase):
             data["notification"] = "email"
 
         self._validate_create_request(data)
-        response = self.client._request("POST", "/api/v1/alerts", json=data)
+        response = self.client._request("POST", "/alerts", json=data)
         return Alert(response)
 
     def get(self, alert_id: str) -> Alert:
@@ -40,7 +40,7 @@ class AlertsResource(AlertsResourceBase):
         if not alert_id:
             raise ValidationError("Alert ID is required")
 
-        response = self.client._request("GET", f"/api/v1/alerts/{alert_id}")
+        response = self.client._request("GET", f"/alerts/{alert_id}")
         return Alert(response)
 
     def update(
@@ -77,41 +77,45 @@ class AlertsResource(AlertsResourceBase):
         if not update_data:
             raise ValidationError("At least one field must be provided for update")
 
-        response = self.client._request("PUT", f"/api/v1/alerts/{alert_id}", json=update_data)
+        response = self.client._request("PUT", f"/alerts/{alert_id}", json=update_data)
         return Alert(response)
 
-    def pause(self, alert_id: str) -> Alert:
+    def pause(self, alert_id: str) -> Dict[str, Any]:
         """
         Pause an alert.
 
         Args:
             alert_id: Alert ID
+
+        Returns:
+            Dictionary with alertId and status
         """
         if not alert_id:
             raise ValidationError("Alert ID is required")
 
-        response = self.client._request("POST", f"/api/v1/alerts/{alert_id}/pause")
-        return Alert(response)
+        return self.client._request("POST", f"/alerts/{alert_id}/pause")
 
-    def activate(self, alert_id: str) -> Alert:
+    def activate(self, alert_id: str) -> Dict[str, Any]:
         """
         Activate/reactivate an alert.
 
         Args:
             alert_id: Alert ID
+
+        Returns:
+            Dictionary with alertId and status
         """
         if not alert_id:
             raise ValidationError("Alert ID is required")
 
-        response = self.client._request("POST", f"/api/v1/alerts/{alert_id}/activate")
-        return Alert(response)
+        return self.client._request("POST", f"/alerts/{alert_id}/activate")
 
     def delete(self, alert_id: str) -> Dict[str, Any]:
         """Delete an alert."""
         if not alert_id:
             raise ValidationError("Alert ID is required")
 
-        return self.client._request("DELETE", f"/api/v1/alerts/{alert_id}")
+        return self.client._request("DELETE", f"/alerts/{alert_id}")
 
     def history(self, alert_id: str, page: int = 1, limit: int = 50) -> Dict[str, Any]:
         """
@@ -130,7 +134,7 @@ class AlertsResource(AlertsResourceBase):
         params = {"page": page, "limit": limit}
         return self.client._request(
             "GET",
-            f"/api/v1/alerts/{alert_id}/history",
+            f"/alerts/{alert_id}/history",
             params=params,
             return_full_response=True
         )
@@ -141,7 +145,7 @@ class AlertsResource(AlertsResourceBase):
 
         Returns full response with data containing statusCounts and total.
         """
-        return self.client._request("GET", "/api/v1/alerts/stats", return_full_response=True)
+        return self.client._request("GET", "/alerts/stats", return_full_response=True)
 
     def verify(self, token: str) -> Alert:
         """
@@ -153,7 +157,7 @@ class AlertsResource(AlertsResourceBase):
         if not token:
             raise ValidationError("Token is required")
 
-        response = self.client._request("POST", "/api/v1/alerts/verify", json={"token": token})
+        response = self.client._request("POST", "/alerts/verify", json={"token": token})
         return Alert(response)
 
     def iterate(self, **params: Any) -> Generator[Alert, None, None]:
