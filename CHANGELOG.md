@@ -5,6 +5,35 @@ All notable changes to the StockAlert Python SDK will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-10-14
+
+### Fixed
+- **Critical**: Fixed duplicate `/api/v1` in API endpoint paths
+  - All endpoints now use correct relative paths (`/alerts` instead of `/api/v1/alerts`)
+  - Prevents 404 errors from malformed URLs like `https://stockalert.pro/api/v1/api/v1/alerts`
+  - Affected 10 endpoints: list, create, get, update, pause, activate, delete, history, stats, verify
+- **Type Safety**: Updated `pause()` and `activate()` return types
+  - Changed from `Alert` to `Dict[str, Any]` to match API response format
+  - API returns `{alertId, status}` instead of full Alert object
+  - Updated CLI commands to handle new response format
+- **Validation**: Corrected `earnings_announcement` threshold requirement
+  - Moved from `no_threshold` to `requires_threshold` list
+  - Aligns with v1 API requirement (threshold = days before event)
+
+### Added
+- Comprehensive live test suite (`test_sdk_live.py`)
+  - 22 test cases covering all SDK functionality
+  - Tests authentication, CRUD operations, pagination, error handling
+  - Automatic cleanup of test data
+  - 95.5% success rate (21/22 passing)
+- Detailed test documentation (`TEST_RESULTS.md`)
+  - Performance metrics and recommendations
+  - Lists all bugs found and fixed during testing
+
+### Changed
+- All linting (ruff) and type checking (mypy) errors resolved
+- CI/CD pipeline now passes on all Python versions (3.8-3.12)
+
 ## [2.0.0] - 2025-01-14
 
 ### 🚀 MAJOR RELEASE: v1 API Migration
