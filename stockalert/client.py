@@ -20,7 +20,7 @@ from .resources.webhooks import WebhooksResource
 class StockAlert:
     """StockAlert API client."""
 
-    DEFAULT_BASE_URL = "https://stockalert.pro/api/public/v1"
+    DEFAULT_BASE_URL = "https://stockalert.pro/api/v1"
     DEFAULT_TIMEOUT = 30
     DEFAULT_MAX_RETRIES = 3
 
@@ -76,6 +76,7 @@ class StockAlert:
         params: Optional[Dict[str, Any]] = None,
         json: Optional[Dict[str, Any]] = None,
         timeout: Optional[int] = None,
+        return_full_response: bool = False,
     ) -> Any:
         """Make an HTTP request to the API."""
         # Don't use urljoin as it removes the API path when path starts with /
@@ -114,10 +115,12 @@ class StockAlert:
                     self._rate_limit_reset[url] = time.time() + retry_after
 
                     data = response.json()
-                    raise RateLimitError(
-                        data.get("error", "Rate limit exceeded"),
-                        retry_after=retry_after
-                    )
+                    error_data = data.get("error", {})
+                    if isinstance(error_data, dict):
+                        error_msg = error_data.get("message", "Rate limit exceeded")
+                    else:
+                        error_msg = str(error_data) if error_data else "Rate limit exceeded"
+                    raise RateLimitError(error_msg, retry_after=retry_after)
 
                 # Parse response
                 try:
@@ -127,24 +130,34 @@ class StockAlert:
 
                 # Handle errors
                 if response.status_code == 401:
-                    raise AuthenticationError(data.get("error", "Authentication failed"))
+                    error_msg = data.get("error", {})
+                    if isinstance(error_msg, dict):
+                        error_msg = error_msg.get("message", "Authentication failed")
+                    raise AuthenticationError(error_msg)
 
                 if not response.ok:
-                    raise APIError(
-                        data.get("error", f"HTTP {response.status_code}"),
-                        response.status_code,
-                        data
-                    )
+                    error_data = data.get("error", {})
+                    if isinstance(error_data, dict):
+                        error_msg = error_data.get("message", f"HTTP {response.status_code}")
+                    else:
+                        error_msg = str(error_data) if error_data else f"HTTP {response.status_code}"
+                    raise APIError(error_msg, response.status_code, data)
 
+                # Check success field (v1 API format)
                 if not data.get("success", True):
-                    raise APIError(
-                        data.get("error", "Request failed"),
-                        response.status_code,
-                        data
-                    )
+                    error_data = data.get("error", {})
+                    if isinstance(error_data, dict):
+                        error_msg = error_data.get("message", "Request failed")
+                    else:
+                        error_msg = str(error_data) if error_data else "Request failed"
+                    raise APIError(error_msg, response.status_code, data)
 
-                # Return data directly for single objects, or full response for lists
-                if "data" in data and "meta" not in data:
+                # Return full response if requested (for list/history/stats with meta)
+                if return_full_response:
+                    return data
+
+                # Return data field for v1 envelope format
+                if "data" in data:
                     return data["data"]
                 return data
 

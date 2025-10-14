@@ -1,5 +1,5 @@
 """Alerts resource for StockAlert SDK."""
-from typing import Any, Dict, Generator
+from typing import Any, Dict, Generator, List, Optional
 
 from ..exceptions import ValidationError
 from ..types import Alert, AlertStatus
@@ -13,12 +13,16 @@ class AlertsResource(AlertsResourceBase):
         self.client = client
 
     def list(self, **params: Any) -> Dict[str, Any]:
-        """List alerts with optional filtering."""
+        """
+        List alerts with optional filtering.
+
+        Returns full response including data and meta with pagination info.
+        """
         # Normalize symbol to uppercase
         if "symbol" in params:
             params["symbol"] = str(params["symbol"]).upper()
 
-        response = self.client._request("GET", "/alerts", params=params)
+        response = self.client._request("GET", "/api/v1/alerts", params=params, return_full_response=True)
         return response  # type: ignore[no-any-return]
 
     def create(self, **data: Any) -> Alert:
@@ -28,7 +32,7 @@ class AlertsResource(AlertsResourceBase):
             data["notification"] = "email"
 
         self._validate_create_request(data)
-        response = self.client._request("POST", "/alerts", json=data)
+        response = self.client._request("POST", "/api/v1/alerts", json=data)
         return Alert(response)
 
     def get(self, alert_id: str) -> Alert:
@@ -36,18 +40,70 @@ class AlertsResource(AlertsResourceBase):
         if not alert_id:
             raise ValidationError("Alert ID is required")
 
-        response = self.client._request("GET", f"/alerts/{alert_id}")
+        response = self.client._request("GET", f"/api/v1/alerts/{alert_id}")
         return Alert(response)
 
-    def update(self, alert_id: str, status: AlertStatus) -> Alert:
-        """Update alert status."""
+    def update(
+        self,
+        alert_id: str,
+        condition: Optional[str] = None,
+        threshold: Optional[float] = None,
+        notification: Optional[str] = None,
+        parameters: Optional[Dict[str, Any]] = None
+    ) -> Alert:
+        """
+        Update alert (partial update).
+
+        Args:
+            alert_id: Alert ID
+            condition: New alert condition
+            threshold: New threshold value
+            notification: New notification channel (email, sms)
+            parameters: Additional parameters
+        """
         if not alert_id:
             raise ValidationError("Alert ID is required")
 
-        if status not in ["active", "paused"]:
-            raise ValidationError('Status must be either "active" or "paused"')
+        update_data: Dict[str, Any] = {}
+        if condition is not None:
+            update_data["condition"] = condition
+        if threshold is not None:
+            update_data["threshold"] = threshold
+        if notification is not None:
+            update_data["notification"] = notification
+        if parameters is not None:
+            update_data["parameters"] = parameters
 
-        response = self.client._request("PUT", f"/alerts/{alert_id}", json={"status": status})
+        if not update_data:
+            raise ValidationError("At least one field must be provided for update")
+
+        response = self.client._request("PUT", f"/api/v1/alerts/{alert_id}", json=update_data)
+        return Alert(response)
+
+    def pause(self, alert_id: str) -> Alert:
+        """
+        Pause an alert.
+
+        Args:
+            alert_id: Alert ID
+        """
+        if not alert_id:
+            raise ValidationError("Alert ID is required")
+
+        response = self.client._request("POST", f"/api/v1/alerts/{alert_id}/pause")
+        return Alert(response)
+
+    def activate(self, alert_id: str) -> Alert:
+        """
+        Activate/reactivate an alert.
+
+        Args:
+            alert_id: Alert ID
+        """
+        if not alert_id:
+            raise ValidationError("Alert ID is required")
+
+        response = self.client._request("POST", f"/api/v1/alerts/{alert_id}/activate")
         return Alert(response)
 
     def delete(self, alert_id: str) -> Dict[str, Any]:
@@ -55,26 +111,72 @@ class AlertsResource(AlertsResourceBase):
         if not alert_id:
             raise ValidationError("Alert ID is required")
 
-        return self.client._request("DELETE", f"/alerts/{alert_id}")
+        return self.client._request("DELETE", f"/api/v1/alerts/{alert_id}")
+
+    def history(self, alert_id: str, page: int = 1, limit: int = 50) -> Dict[str, Any]:
+        """
+        Get alert history.
+
+        Args:
+            alert_id: Alert ID
+            page: Page number (default: 1)
+            limit: Items per page (default: 50, max: 200)
+
+        Returns full response including data and meta with pagination info.
+        """
+        if not alert_id:
+            raise ValidationError("Alert ID is required")
+
+        params = {"page": page, "limit": limit}
+        return self.client._request(
+            "GET",
+            f"/api/v1/alerts/{alert_id}/history",
+            params=params,
+            return_full_response=True
+        )
+
+    def stats(self) -> Dict[str, Any]:
+        """
+        Get alert statistics.
+
+        Returns full response with data containing statusCounts and total.
+        """
+        return self.client._request("GET", "/api/v1/alerts/stats", return_full_response=True)
+
+    def verify(self, token: str) -> Alert:
+        """
+        Verify alert via token (for guest alerts).
+
+        Args:
+            token: Verification token
+        """
+        if not token:
+            raise ValidationError("Token is required")
+
+        response = self.client._request("POST", "/api/v1/alerts/verify", json={"token": token})
+        return Alert(response)
 
     def iterate(self, **params: Any) -> Generator[Alert, None, None]:
         """Iterate through all alerts with automatic pagination."""
-        offset = 0
-        limit = min(params.get("limit", 100), 100)
+        page = params.get("page", 1)
+        limit = min(params.get("limit", 50), 100)
 
         # Remove pagination params from base params
-        base_params = {k: v for k, v in params.items() if k not in ["limit", "offset"]}
+        base_params = {k: v for k, v in params.items() if k not in ["limit", "page"]}
 
         while True:
-            page = self.list(**base_params, limit=limit, offset=offset)
+            result = self.list(**base_params, limit=limit, page=page)
 
-            if "data" in page:
-                for alert_data in page["data"]:
+            if "data" in result:
+                for alert_data in result["data"]:
                     yield Alert(alert_data)
 
-                if len(page["data"]) < limit:
+                # Check if we have more pages
+                meta = result.get("meta", {})
+                pagination = meta.get("pagination", {})
+                if page >= pagination.get("totalPages", 1):
                     break
             else:
                 break
 
-            offset += limit
+            page += 1

@@ -84,7 +84,14 @@ class BaseResource:
             if not response.ok:
                 self._handle_error(response, rate_limit_info)
 
-            return response.json()  # type: ignore[no-any-return]
+            # Parse JSON response
+            json_response = response.json()
+
+            # For v1 API envelope format, return data field
+            if "data" in json_response:
+                return json_response["data"]  # type: ignore[no-any-return]
+
+            return json_response  # type: ignore[no-any-return]
 
         except requests.exceptions.Timeout as e:
             raise NetworkError("Request timed out") from e
@@ -95,11 +102,16 @@ class BaseResource:
 
     def _handle_error(self, response: requests.Response, rate_limit_info: Dict[str, int]) -> None:
         try:
-            error_data = response.json()
-            error_message = error_data.get("error", response.reason)
+            response_data = response.json()
+            # Extract error message from v1 API format
+            error_obj = response_data.get("error", {})
+            if isinstance(error_obj, dict):
+                error_message = error_obj.get("message", response.reason or f"HTTP {response.status_code}")
+            else:
+                error_message = str(error_obj) if error_obj else (response.reason or f"HTTP {response.status_code}")
         except Exception:
             error_message = response.reason or f"HTTP {response.status_code}"
-            error_data = {}
+            response_data = {}
 
         if response.status_code == 401:
             raise AuthenticationError(error_message)
@@ -112,10 +124,12 @@ class BaseResource:
                 retry_after=int(retry_after) if retry_after else None
             )
         elif response.status_code == 422:
-            # Include validation errors in the message if available
-            validation_errors = error_data.get("errors", [])
-            if validation_errors:
-                error_message = f"{error_message}: {', '.join(validation_errors)}"
+            # Include validation errors from details if available
+            error_obj = response_data.get("error", {})
+            if isinstance(error_obj, dict) and "details" in error_obj:
+                details = error_obj["details"]
+                if isinstance(details, dict):
+                    error_message = f"{error_message}: {details}"
             raise ValidationError(error_message)
         else:
             raise StockAlertError(error_message)

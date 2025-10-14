@@ -10,12 +10,12 @@ except ImportError as e:
         "Install it with: pip install stockalert[async]"
     ) from e
 
-from .exceptions import AuthenticationError
+from .exceptions import APIError, AuthenticationError
 from .resources.async_alerts import AsyncAlertsResource
 from .resources.async_api_keys import AsyncApiKeysResource
 from .resources.async_webhooks import AsyncWebhooksResource
 
-DEFAULT_BASE_URL = "https://stockalert.pro/api/public/v1"
+DEFAULT_BASE_URL = "https://stockalert.pro/api/v1"
 DEFAULT_TIMEOUT = 30
 
 
@@ -70,6 +70,8 @@ class AsyncStockAlert:
 
         # Set client reference for resources
         self.alerts.client = self
+        self.webhooks.client = self
+        self.api_keys.client = self
 
         return self
 
@@ -85,3 +87,55 @@ class AsyncStockAlert:
                 "Use: async with AsyncStockAlert(...) as client:"
             )
         return self._client
+
+    async def _request(
+        self,
+        method: str,
+        path: str,
+        params: Any = None,
+        json: Any = None,
+        return_full_response: bool = False,
+    ) -> Any:
+        """Make an HTTP request to the API."""
+        response = await self.client.request(method, path, params=params, json=json)
+
+        # Parse response
+        try:
+            result = response.json()
+        except Exception as e:
+            raise APIError(f"Invalid JSON response: {response.text}", response.status_code) from e
+
+        # Handle errors
+        if response.status_code == 401:
+            error_data = result.get("error", {})
+            if isinstance(error_data, dict):
+                error_msg = error_data.get("message", "Authentication failed")
+            else:
+                error_msg = str(error_data) if error_data else "Authentication failed"
+            raise AuthenticationError(error_msg)
+
+        if not response.is_success:
+            error_data = result.get("error", {})
+            if isinstance(error_data, dict):
+                error_msg = error_data.get("message", f"HTTP {response.status_code}")
+            else:
+                error_msg = str(error_data) if error_data else f"HTTP {response.status_code}"
+            raise APIError(error_msg, response.status_code, result)
+
+        # Check success field (v1 API format)
+        if not result.get("success", True):
+            error_data = result.get("error", {})
+            if isinstance(error_data, dict):
+                error_msg = error_data.get("message", "Request failed")
+            else:
+                error_msg = str(error_data) if error_data else "Request failed"
+            raise APIError(error_msg, response.status_code, result)
+
+        # Return full response if requested (for list/history/stats with meta)
+        if return_full_response:
+            return result
+
+        # Return data field for v1 envelope format
+        if "data" in result:
+            return result["data"]
+        return result

@@ -42,12 +42,30 @@ class Alert:
         self.notification: NotificationChannel = data["notification"]
         self.status: AlertStatus = data["status"]
         self.created_at: datetime = datetime.fromisoformat(data["created_at"].replace('Z', '+00:00'))
-        self.updated_at: datetime = datetime.fromisoformat(data["updated_at"].replace('Z', '+00:00'))
-        self.last_triggered: Optional[datetime] = None
-        if data.get("last_triggered"):
-            self.last_triggered = datetime.fromisoformat(data["last_triggered"].replace('Z', '+00:00'))
+
+        # triggered_at instead of updated_at (v1 API change)
+        self.triggered_at: Optional[datetime] = None
+        if data.get("triggered_at"):
+            self.triggered_at = datetime.fromisoformat(data["triggered_at"].replace('Z', '+00:00'))
+
+        # Keep backward compatibility
+        self.updated_at: datetime = self.triggered_at or self.created_at
+        self.last_triggered: Optional[datetime] = self.triggered_at
+
         self.initial_price: Optional[float] = data.get("initial_price")
         self.parameters: Optional[Dict[str, Any]] = data.get("parameters")
+
+        # New fields from v1 API
+        self.user_id: Optional[str] = data.get("user_id")
+        self.email: Optional[str] = data.get("email")
+        self.verified: Optional[bool] = data.get("verified")
+        self.verification_token: Optional[str] = data.get("verification_token")
+        self.last_evaluated_at: Optional[datetime] = None
+        if data.get("last_evaluated_at"):
+            self.last_evaluated_at = datetime.fromisoformat(data["last_evaluated_at"].replace('Z', '+00:00'))
+        self.last_metric_value: Optional[float] = data.get("last_metric_value")
+        self.stock: Optional[Dict[str, Any]] = data.get("stock")
+
         self._raw_data = data
 
     def __repr__(self) -> str:
@@ -58,14 +76,24 @@ class Alert:
         return self._raw_data
 
 class PaginatedResponse:
-    """Paginated response."""
+    """Paginated response for v1 API."""
     def __init__(self, data: List[Dict[str, Any]], meta: Dict[str, Any]):
         self.data = data
         self.meta = meta
-        self.total = meta.get("total", 0)
-        self.limit = meta.get("limit", 100)
-        self.offset = meta.get("offset", 0)
-        self.has_more = meta.get("has_more", False)
+
+        # v1 API pagination structure: meta.pagination
+        pagination = meta.get("pagination", {})
+        self.page = pagination.get("page", 1)
+        self.limit = pagination.get("limit", 50)
+        self.total = pagination.get("total", 0)
+        self.total_pages = pagination.get("totalPages", 0)
+
+        # Backward compatibility
+        self.offset = (self.page - 1) * self.limit
+        self.has_more = self.page < self.total_pages
+
+        # Rate limit info from meta
+        self.rate_limit = meta.get("rateLimit", {})
 
 class WebhookPayload:
     """Webhook payload."""
