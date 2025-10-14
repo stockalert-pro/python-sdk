@@ -43,13 +43,14 @@ class AlertsResourceBase:
             "price_above", "price_below", "price_change_up", "price_change_down",
             "ma_touch_above", "ma_touch_below", "rsi_limit", "volume_change",
             "pe_ratio_below", "pe_ratio_above",
-            "forward_pe_below", "forward_pe_above"
+            "forward_pe_below", "forward_pe_above",
+            "earnings_announcement", "dividend_ex_date"
         ]
 
         # Conditions that don't use threshold
         no_threshold = [
             "new_high", "new_low", "ma_crossover_golden", "ma_crossover_death",
-            "earnings_announcement", "dividend_ex_date", "dividend_payment"
+            "daily_reminder", "reminder", "dividend_payment"
         ]
 
         if condition in requires_threshold and threshold is None:

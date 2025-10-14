@@ -144,7 +144,7 @@ def cmd_pause(args: argparse.Namespace) -> None:
     client = get_client()
 
     try:
-        alert = client.alerts.update(args.alert_id, "paused")
+        alert = client.alerts.pause(args.alert_id)
         print(f"✅ Alert {alert.id} paused")
     except StockAlertError as e:
         print(f"Error: {e}", file=sys.stderr)
@@ -156,7 +156,7 @@ def cmd_activate(args: argparse.Namespace) -> None:
     client = get_client()
 
     try:
-        alert = client.alerts.update(args.alert_id, "active")
+        alert = client.alerts.activate(args.alert_id)
         print(f"✅ Alert {alert.id} activated")
     except StockAlertError as e:
         print(f"Error: {e}", file=sys.stderr)

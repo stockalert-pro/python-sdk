@@ -47,8 +47,22 @@ def test_alert_validation():
     with pytest.raises(ValidationError, match="does not use a threshold value"):
         resource._validate_create_request({
             "symbol": "AAPL",
-            "condition": "earnings_announcement",
+            "condition": "ma_crossover_golden",
             "threshold": 100
+        })
+
+    # Test earnings_announcement requires threshold
+    with pytest.raises(ValidationError, match="requires a threshold value"):
+        resource._validate_create_request({
+            "symbol": "AAPL",
+            "condition": "earnings_announcement"
+        })
+
+    # Test dividend_ex_date requires threshold
+    with pytest.raises(ValidationError, match="requires a threshold value"):
+        resource._validate_create_request({
+            "symbol": "MSFT",
+            "condition": "dividend_ex_date"
         })
 
 

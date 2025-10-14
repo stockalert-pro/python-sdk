@@ -24,6 +24,6 @@ def test_client_accepts_valid_api_key():
     """Test that client accepts valid API key."""
     client = StockAlert(api_key="sk_test_valid_key")
     assert client.api_key == "sk_test_valid_key"
-    assert client.base_url == "https://stockalert.pro/api/public/v1"
+    assert client.base_url == "https://stockalert.pro/api/v1"
     assert client.timeout == 30
     assert client.max_retries == 3
