@@ -1,8 +1,8 @@
 """Alerts resource for StockAlert SDK."""
-from typing import Any, Dict, Generator, List, Optional
+from typing import Any, Dict, Generator, Optional
 
 from ..exceptions import ValidationError
-from ..types import Alert, AlertStatus
+from ..types import Alert
 from .alerts_base import AlertsResourceBase
 
 

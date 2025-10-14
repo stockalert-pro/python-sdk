@@ -113,4 +113,8 @@ class WebhooksResource(BaseResource):
             hashlib.sha256
         ).hexdigest()
 
+        # Support both formats: "sha256=..." and raw hex
+        if signature.startswith("sha256="):
+            signature = signature[7:]  # Remove "sha256=" prefix
+
         return signature == expected_signature

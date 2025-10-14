@@ -8,13 +8,20 @@ class TestAlertTypes:
     """Test alert type classes."""
 
     def test_paginated_response(self):
-        """Test paginated response creation."""
+        """Test paginated response creation (v1 API format)."""
         data = [{"id": "1"}, {"id": "2"}]
         meta = {
-            "total": 50,
-            "limit": 10,
-            "offset": 0,
-            "has_more": True
+            "pagination": {
+                "page": 1,
+                "limit": 10,
+                "total": 50,
+                "totalPages": 5
+            },
+            "rateLimit": {
+                "limit": 1000,
+                "remaining": 999,
+                "reset": 1736180400000
+            }
         }
 
         response = PaginatedResponse(data, meta)
@@ -22,7 +29,8 @@ class TestAlertTypes:
         assert response.data == data
         assert response.total == 50
         assert response.limit == 10
-        assert response.offset == 0
+        assert response.page == 1
+        assert response.total_pages == 5
         assert response.has_more is True
 
     def test_alert_datetime_parsing(self):

@@ -2,7 +2,7 @@
 from typing import Any, AsyncGenerator, Dict, Optional
 
 from ..exceptions import ValidationError
-from ..types import Alert, AlertStatus
+from ..types import Alert
 from .alerts_base import AlertsResourceBase
 
 
