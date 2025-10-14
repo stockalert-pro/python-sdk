@@ -7,13 +7,11 @@ Tests all major functionality with the provided API key
 import sys
 import time
 from datetime import datetime
-from typing import Optional
 
 from stockalert import StockAlert
 from stockalert.exceptions import (
     APIError,
     AuthenticationError,
-    RateLimitError,
     ValidationError,
 )
 
@@ -390,7 +388,7 @@ class TestRunner:
         # Test iterate method
         try:
             count = 0
-            for alert in self.client.alerts.iterate(limit=2):
+            for _alert in self.client.alerts.iterate(limit=2):
                 count += 1
                 if count >= 5:  # Limit iterations
                     break
