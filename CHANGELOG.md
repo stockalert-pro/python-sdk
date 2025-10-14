@@ -5,6 +5,109 @@ All notable changes to the StockAlert Python SDK will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-01-14
+
+### 🚀 MAJOR RELEASE: v1 API Migration
+
+This is a major release with breaking changes due to the migration to the unified v1 API.
+
+### Breaking Changes
+
+#### API Endpoint Migration
+- **Base URL changed**: `/api/public/v1` → `/api/v1`
+- All API responses now use v1 envelope format with `{success, data, meta}`
+
+#### Alert Methods
+- `alerts.update(alert_id, status)` method signature changed
+  - **Before**: `update(alert_id, "paused")` for status changes
+  - **After**: Use dedicated methods `pause(alert_id)` and `activate(alert_id)`
+  - **New**: `update()` now supports partial updates of condition, threshold, notification, parameters
+
+#### Pagination
+- Changed from offset-based to page-based pagination
+  - **Before**: `list(offset=0, limit=50)`
+  - **After**: `list(page=1, limit=50)`
+
+### Added
+
+#### New Alert Methods
+- `alerts.pause(alert_id)` - Pause an active alert
+- `alerts.activate(alert_id)` - Reactivate a paused alert
+- `alerts.history(alert_id, page, limit)` - Get alert history with pagination
+- `alerts.stats()` - Get alert statistics (status counts, total)
+- `alerts.verify(token)` - Verify guest alert via email token
+
+#### New Webhook Methods
+- `webhooks.get(webhook_id)` - Get webhook by ID
+
+#### Enhanced Types
+- Alert type extended with v1 fields:
+  - `triggered_at` - Timestamp when alert was triggered
+  - `user_id` - Owner UUID
+  - `email` - Guest alert email
+  - `verified` - Email verification status
+  - `verification_token` - Verification token
+  - `last_evaluated_at` - Last evaluation timestamp
+  - `last_metric_value` - Last metric value
+  - `stock` - Enriched stock data (on GET by ID)
+
+- PaginatedResponse updated for v1 structure:
+  - `meta.pagination` with page, limit, total, totalPages
+  - `meta.rateLimit` with rate limit info
+  - Backward compatibility maintained
+
+### Changed
+
+#### Validation
+- `earnings_announcement` and `dividend_ex_date` now require threshold values
+  - These represent "days before" the event (e.g., 7 days before earnings)
+
+#### Webhook Signature Verification
+- `verify_signature()` now supports both formats: `sha256=...` prefix and raw hex
+
+#### Error Handling
+- Enhanced error extraction from v1 API format (`error.message`)
+- Improved rate limit error handling with proper message extraction
+- Consistent error handling across sync and async clients
+
+### Fixed
+- Async client resource initialization (webhooks and api_keys client references)
+- Rate limit error message extraction from v1 format
+- Type checking issues with mypy
+
+### Migration Guide
+
+#### Update Method Calls
+```python
+# Before
+client.alerts.update(alert_id, "paused")
+
+# After
+client.alerts.pause(alert_id)
+client.alerts.activate(alert_id)
+```
+
+#### Update Pagination
+```python
+# Before
+alerts = client.alerts.list(offset=0, limit=50)
+
+# After
+alerts = client.alerts.list(page=1, limit=50)
+```
+
+#### Use New Features
+```python
+# Get alert history
+history = client.alerts.history(alert_id, page=1, limit=50)
+
+# Get statistics
+stats = client.alerts.stats()
+
+# Partial update
+client.alerts.update(alert_id, threshold=150.0, notification="email")
+```
+
 ## [1.2.0] - 2024-01-07
 
 ### Added
