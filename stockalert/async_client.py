@@ -107,8 +107,10 @@ class AsyncStockAlert:
             if not bearer:
                 raise AuthenticationError("Bearer token required for this endpoint")
             # Start from client's default headers and remove X-API-Key
-            base_headers = {k.decode() if isinstance(k, (bytes, bytearray)) else str(k): v.decode() if isinstance(v, (bytes, bytearray)) else str(v)
-                            for k, v in self.client.headers.items()}
+            base_headers = {
+                str(key): str(value)
+                for key, value in self.client.headers.items()
+            }
             base_headers.pop("X-API-Key", None)
             base_headers["Authorization"] = f"Bearer {bearer}"
             headers = base_headers

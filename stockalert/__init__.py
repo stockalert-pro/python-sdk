@@ -1,5 +1,5 @@
 """StockAlert Python SDK."""
-from typing import Any
+from typing import Any, Type
 
 from .__version__ import __version__
 from .client import StockAlert
@@ -20,7 +20,7 @@ from .types import (
 )
 
 
-def _build_missing_async_client(import_error: ImportError) -> type[Any]:
+def _build_missing_async_client(import_error: ImportError) -> Type[Any]:
     class MissingAsyncStockAlert:
         def __init__(self, *_args, **_kwargs):
             raise ImportError(str(import_error)) from import_error
@@ -29,7 +29,7 @@ def _build_missing_async_client(import_error: ImportError) -> type[Any]:
     return MissingAsyncStockAlert
 
 
-AsyncStockAlert: type[Any]
+AsyncStockAlert: Type[Any]
 
 try:
     from .async_client import AsyncStockAlert as ImportedAsyncStockAlert
