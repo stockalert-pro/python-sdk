@@ -5,6 +5,13 @@ All notable changes to the StockAlert Python SDK will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2026-03-19
+
+### Fixed
+- Restored Python 3.8 `mypy` compatibility for the optional async import/export path.
+- Simplified async header normalization to avoid CI-only typing regressions.
+- Synced public SDK behavior and tests with the current StockAlert API contract.
+
 ## [2.0.1] - 2025-10-14
 
 ### Fixed
