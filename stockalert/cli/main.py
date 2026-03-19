@@ -3,7 +3,7 @@ import argparse
 import json
 import os
 import sys
-from typing import Any
+from typing import Any, List
 
 from stockalert import StockAlert, __version__
 from stockalert.exceptions import StockAlertError
@@ -44,7 +44,7 @@ def cmd_list(args: argparse.Namespace) -> None:
         if args.json:
             print_json(response)
         else:
-            alerts: list[Any]
+            alerts: List[Any]
             # Check if response is a dict with data key or direct list
             if isinstance(response, dict) and "data" in response:
                 alerts = response["data"]

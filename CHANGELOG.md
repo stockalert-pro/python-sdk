@@ -5,6 +5,11 @@ All notable changes to the StockAlert Python SDK will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.4] - 2026-03-19
+
+### Fixed
+- Replaced a Python 3.9+ only CLI type annotation with a Python 3.8-compatible `typing.List[...]` annotation so the package and CI stay green across all supported versions.
+
 ## [2.0.3] - 2026-03-19
 
 ### Fixed
