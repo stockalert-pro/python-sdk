@@ -11,6 +11,8 @@ from stockalert.exceptions import StockAlertError
 
 def print_json(data: Any) -> None:
     """Print data as formatted JSON."""
+    if hasattr(data, "to_dict"):
+        data = data.to_dict()
     print(json.dumps(data, indent=2, default=str))
 
 
@@ -42,6 +44,7 @@ def cmd_list(args: argparse.Namespace) -> None:
         if args.json:
             print_json(response)
         else:
+            alerts: list[Any]
             # Check if response is a dict with data key or direct list
             if isinstance(response, dict) and "data" in response:
                 alerts = response["data"]

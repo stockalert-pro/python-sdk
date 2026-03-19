@@ -21,6 +21,10 @@ alert = client.alerts.create(
     condition="price_above",
     threshold=200
 )
+
+# Read subscription details
+subscription = client.user.get_subscription()
+print(alert.id, subscription.account_type)
 ```
 
 ## Documentation

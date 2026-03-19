@@ -5,6 +5,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+from ..__version__ import __version__
 from ..exceptions import (
     AuthenticationError,
     NetworkError,
@@ -41,7 +42,7 @@ class BaseResource:
         session.headers.update({
             "X-API-Key": self._config['api_key'],
             "Content-Type": "application/json",
-            "User-Agent": "stockalert-python/1.0.0",
+            "User-Agent": f"stockalert-python/{__version__}",
         })
 
         return session

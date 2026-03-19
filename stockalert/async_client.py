@@ -13,6 +13,7 @@ except ImportError as e:
 from .__version__ import __version__
 from .exceptions import APIError, AuthenticationError, ValidationError
 from .resources.async_alerts import AsyncAlertsResource
+from .resources.async_user import AsyncUserResource
 from .resources.async_webhooks import AsyncWebhooksResource
 
 DEFAULT_BASE_URL = "https://stockalert.pro/api/v1"
@@ -53,6 +54,7 @@ class AsyncStockAlert:
 
         # Initialize resources
         self.alerts = AsyncAlertsResource(self._config)
+        self.user = AsyncUserResource(self._config)
         self.webhooks = AsyncWebhooksResource(self._config)
 
     async def __aenter__(self) -> "AsyncStockAlert":
@@ -74,6 +76,7 @@ class AsyncStockAlert:
 
         # Set client reference for resources
         self.alerts.client = self
+        self.user.client = self
         self.webhooks.client = self
 
         return self

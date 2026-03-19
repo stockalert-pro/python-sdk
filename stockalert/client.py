@@ -14,6 +14,7 @@ from .exceptions import (
     ValidationError,
 )
 from .resources.alerts import AlertsResource
+from .resources.user import UserResource
 from .resources.webhooks import WebhooksResource
 
 
@@ -65,6 +66,7 @@ class StockAlert:
         }
         # Initialize resources
         self.alerts = AlertsResource(config)
+        self.user = UserResource(config)
         self.webhooks = WebhooksResource(config)
 
         # Rate limit tracking

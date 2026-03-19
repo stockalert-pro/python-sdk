@@ -16,6 +16,8 @@ from .types import (
     AlertCondition,
     AlertStatus,
     NotificationChannel,
+    PaginatedResponse,
+    UserSubscription,
     WebhookPayload,
 )
 
@@ -53,6 +55,8 @@ __all__ = [
     "AlertCondition",
     "NotificationChannel",
     "AlertStatus",
+    "PaginatedResponse",
+    "UserSubscription",
     "WebhookPayload",
     "__version__",
 ]

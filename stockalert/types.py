@@ -29,6 +29,7 @@ AlertCondition = Literal[
 
 NotificationChannel = Literal["email", "sms"]
 AlertStatus = Literal["active", "paused", "triggered", "inactive"]
+AccountType = Literal["basic", "premium", "early_bird"]
 
 
 def _parse_datetime(value: Any) -> Optional[datetime]:
@@ -91,14 +92,47 @@ class Alert:
         return self._raw_data
 
 
+class UserSubscription:
+    """User subscription and quota details."""
+
+    def __init__(self, data: Dict[str, Any]):
+        current_period = data.get("current_period") or {}
+
+        self.id: Optional[str] = data.get("id")
+        self.account_type: AccountType = data["account_type"]
+        self.status: str = data["status"]
+        self.is_early_bird: bool = data["is_early_bird"]
+        self.is_early_bird_eligible: bool = data["is_early_bird_eligible"]
+        self.is_premium: bool = data["is_premium"]
+        self.cancel_at_period_end: Optional[bool] = data.get("cancel_at_period_end")
+        self.quotas: Dict[str, Any] = dict(data.get("quotas") or {})
+        self.usage: Dict[str, Any] = dict(data.get("usage") or {})
+        self.current_period: Dict[str, Optional[datetime]] = {
+            "start": _parse_datetime(current_period.get("start")),
+            "end": _parse_datetime(current_period.get("end")),
+        }
+        self.alerts: Dict[str, Any] = dict(data.get("alerts") or {})
+        self.watchlist_items_count: int = data.get("watchlist_items_count", 0)
+        self.watchlist_quota: int = data.get("watchlist_quota", 0)
+
+        self._raw_data = data
+
+    def __repr__(self) -> str:
+        return f"<UserSubscription {self.account_type} ({self.status})>"
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return self._raw_data
+
+
 class PaginatedResponse:
     """Paginated response for v1 API."""
 
-    def __init__(self, data: List[Dict[str, Any]], meta: Dict[str, Any]):
+    def __init__(self, data: List[Any], meta: Optional[Dict[str, Any]] = None):
         self.data = data
-        self.meta = meta
+        self.meta = meta or {}
 
-        pagination = meta.get("pagination", {})
+        pagination = self.meta.get("pagination", {})
         self.page = pagination.get("page", 1)
         self.limit = pagination.get("limit", 50)
         self.total = pagination.get("total", 0)
@@ -107,7 +141,41 @@ class PaginatedResponse:
         self.offset = (self.page - 1) * self.limit
         self.has_more = self.page < self.total_pages
 
-        self.rate_limit = meta.get("rate_limit", meta.get("rateLimit", {}))
+        self.rate_limit = self.meta.get("rate_limit", self.meta.get("rateLimit", {}))
+
+    def __contains__(self, key: str) -> bool:
+        return key in {"data", "meta"}
+
+    def __getitem__(self, key: str) -> Any:
+        if key == "data":
+            return [self._serialize_item(item) for item in self.data]
+        if key == "meta":
+            return self.meta
+        raise KeyError(key)
+
+    def __len__(self) -> int:
+        return len(self.data)
+
+    def get(self, key: str, default: Optional[Any] = None) -> Any:
+        if key in self:
+            return self[key]
+        return default
+
+    def keys(self) -> List[str]:
+        return ["data", "meta"]
+
+    def items(self) -> List[Any]:
+        return [("data", self["data"]), ("meta", self.meta)]
+
+    def values(self) -> List[Any]:
+        return [self["data"], self.meta]
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {"data": self["data"], "meta": self.meta}
+
+    def _serialize_item(self, item: Any) -> Any:
+        return item.to_dict() if hasattr(item, "to_dict") else item
 
 
 class WebhookPayload:

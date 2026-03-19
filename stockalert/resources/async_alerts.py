@@ -2,7 +2,7 @@
 from typing import Any, AsyncGenerator, Dict, Optional
 
 from ..exceptions import ValidationError
-from ..types import Alert
+from ..types import Alert, PaginatedResponse
 from .alerts_base import AlertsResourceBase
 
 
@@ -13,7 +13,7 @@ class AsyncAlertsResource(AlertsResourceBase):
         self._config = config
         self.client: Any = None  # Set by AsyncStockAlert
 
-    async def list(self, **params: Any) -> Dict[str, Any]:
+    async def list(self, **params: Any) -> PaginatedResponse:
         """
         List alerts with optional filtering.
 
@@ -23,7 +23,8 @@ class AsyncAlertsResource(AlertsResourceBase):
             params["symbol"] = str(params["symbol"]).upper()
 
         response = await self.client._request("GET", "/alerts", params=params, return_full_response=True)
-        return response  # type: ignore[no-any-return]
+        alerts = [Alert(alert_data) for alert_data in response.get("data", [])]
+        return PaginatedResponse(alerts, response.get("meta", {}))
 
     async def create(self, **data: Any) -> Alert:
         """Create a new alert."""
@@ -100,7 +101,7 @@ class AsyncAlertsResource(AlertsResourceBase):
 
         return await self.client._request("DELETE", f"/alerts/{alert_id}")
 
-    async def history(self, alert_id: str, page: int = 1, limit: int = 50) -> Dict[str, Any]:
+    async def history(self, alert_id: str, page: int = 1, limit: int = 50) -> PaginatedResponse:
         """
         Get alert history.
 
@@ -110,12 +111,13 @@ class AsyncAlertsResource(AlertsResourceBase):
             raise ValidationError("Alert ID is required")
 
         params = {"page": page, "limit": limit}
-        return await self.client._request(
+        response = await self.client._request(
             "GET",
             f"/alerts/{alert_id}/history",
             params=params,
             return_full_response=True
         )
+        return PaginatedResponse(response.get("data", []), response.get("meta", {}))
 
     async def iterate(self, **params: Any) -> AsyncGenerator[Alert, None]:
         """Iterate through all alerts with automatic pagination."""
@@ -127,17 +129,10 @@ class AsyncAlertsResource(AlertsResourceBase):
         while True:
             result = await self.list(**base_params, limit=limit, page=page)
 
-            if "data" in result:
-                for alert_data in result["data"]:
-                    yield Alert(alert_data)
+            for alert in result.data:
+                yield alert
 
-                # Check if we have more pages
-                meta = result.get("meta", {})
-                pagination = meta.get("pagination", {})
-                total_pages = pagination.get("total_pages", pagination.get("totalPages", 1))
-                if page >= total_pages:
-                    break
-            else:
+            if page >= max(result.total_pages, 1):
                 break
 
             page += 1

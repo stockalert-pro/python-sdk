@@ -24,7 +24,11 @@ client = StockAlert(api_key="sk_your_api_key")
 
 # List all alerts
 alerts = client.alerts.list()
-print(f"Found {len(alerts['data'])} alerts")
+print(f"Found {len(alerts.data)} alerts")
+
+# Inspect subscription, quotas and usage
+subscription = client.user.get_subscription()
+print(subscription.account_type, subscription.alerts["quota"]["remaining"])
 
 # Create a new alert
 alert = client.alerts.create(
@@ -43,7 +47,7 @@ client.alerts.delete(alert.id)
 
 ## Features
 
-- 🐍 Python 3.7+ support
+- 🐍 Python 3.8+ support
 - 🔄 Automatic retries with exponential backoff
 - 🛡️ Type hints for better IDE support
 - 📦 Minimal dependencies
@@ -61,7 +65,7 @@ from stockalert import AsyncStockAlert
 async def main():
     async with AsyncStockAlert(api_key="sk_your_api_key") as client:
         alerts = await client.alerts.list()
-        print(f"Found {len(alerts['data'])} alerts")
+        print(f"Found {len(alerts.data)} alerts")
 
 asyncio.run(main())
 ```

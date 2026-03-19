@@ -47,7 +47,7 @@ setup(
         "dev": [
             "pre-commit>=3.0.0",
             "pytest>=7.0.0",
-            "types-requests>=2.31.0,",
+            "types-requests>=2.31.0",
             "pytest-cov>=4.0.0",
             "pytest-asyncio>=0.21.0",
             "ruff>=0.1.0",

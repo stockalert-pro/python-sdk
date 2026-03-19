@@ -2,7 +2,7 @@
 from typing import Any, Dict, Generator, Optional
 
 from ..exceptions import ValidationError
-from ..types import Alert
+from ..types import Alert, PaginatedResponse
 from .alerts_base import AlertsResourceBase
 from .base import BaseResource
 
@@ -13,7 +13,7 @@ class AlertsResource(AlertsResourceBase, BaseResource):
     def __init__(self, config: Dict[str, Any]) -> None:
         BaseResource.__init__(self, config)
 
-    def list(self, **params: Any) -> Dict[str, Any]:
+    def list(self, **params: Any) -> PaginatedResponse:
         """
         List alerts with optional filtering.
 
@@ -24,7 +24,8 @@ class AlertsResource(AlertsResourceBase, BaseResource):
             params["symbol"] = str(params["symbol"]).upper()
 
         response = self._request("GET", "/alerts", params=params, return_full_response=True)
-        return response  # type: ignore[no-any-return]
+        alerts = [Alert(alert_data) for alert_data in response.get("data", [])]
+        return PaginatedResponse(alerts, response.get("meta", {}))
 
     def create(self, **data: Any) -> Alert:
         """Create a new alert."""
@@ -118,7 +119,7 @@ class AlertsResource(AlertsResourceBase, BaseResource):
 
         return self._request("DELETE", f"/alerts/{alert_id}")
 
-    def history(self, alert_id: str, page: int = 1, limit: int = 50) -> Dict[str, Any]:
+    def history(self, alert_id: str, page: int = 1, limit: int = 50) -> PaginatedResponse:
         """
         Get alert history.
 
@@ -133,12 +134,13 @@ class AlertsResource(AlertsResourceBase, BaseResource):
             raise ValidationError("Alert ID is required")
 
         params = {"page": page, "limit": limit}
-        return self._request(
+        response = self._request(
             "GET",
             f"/alerts/{alert_id}/history",
             params=params,
             return_full_response=True
         )
+        return PaginatedResponse(response.get("data", []), response.get("meta", {}))
 
     def iterate(self, **params: Any) -> Generator[Alert, None, None]:
         """Iterate through all alerts with automatic pagination."""
@@ -151,17 +153,9 @@ class AlertsResource(AlertsResourceBase, BaseResource):
         while True:
             result = self.list(**base_params, limit=limit, page=page)
 
-            if "data" in result:
-                for alert_data in result["data"]:
-                    yield Alert(alert_data)
+            yield from result.data
 
-                # Check if we have more pages
-                meta = result.get("meta", {})
-                pagination = meta.get("pagination", {})
-                total_pages = pagination.get("total_pages", pagination.get("totalPages", 1))
-                if page >= total_pages:
-                    break
-            else:
+            if page >= max(result.total_pages, 1):
                 break
 
             page += 1

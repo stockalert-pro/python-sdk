@@ -5,6 +5,17 @@ All notable changes to the StockAlert Python SDK will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.3] - 2026-03-19
+
+### Fixed
+- Restored the public `client.user.get_subscription()` helper for parity with the published consumer contract.
+- `alerts.list()` and `alerts.history()` now return `PaginatedResponse` objects instead of raw envelope dictionaries while remaining backward compatible with existing dict-style access.
+- Synced the async client surface with the same `user` and paginated alert behavior as the sync client.
+
+### Changed
+- Examples and README now reflect the actual typed SDK return values.
+- Resource User-Agent headers now use the package version at runtime.
+
 ## [2.0.2] - 2026-03-19
 
 ### Fixed
@@ -179,21 +190,3 @@ client.alerts.update(alert_id, threshold=150.0, notification="email")
 - Support for all notification channels (email, SMS)
 
 [1.1.0]: https://github.com/stockalert-pro/python-sdk/releases/tag/v1.1.0
-
-## [2.1.1] - 2026-03-19
-
-### Changed
-- Public SDK surface aligned with the current consumer contract from `openapi.yaml`
-- `AlertCondition` now includes `insider_transactions`
-- `PaginatedResponse` now prefers `meta.pagination.total_pages` and `meta.rate_limit`
-- `AsyncStockAlert` is exported from the package when async dependencies are available
-
-### Fixed
-- Alert validation now matches current backend rules for `daily_reminder`, `dividend_payment`, `earnings_announcement`, `dividend_ex_date`, `ma_touch_*`, and `insider_transactions`
-- Webhook payload parsing now supports the current nested `data.alert` / `data.stock` structure while remaining backward compatible
-- Webhook signature verification supports both timestamped and legacy formats
-- `AlertsResource.delete()` now uses the shared request path correctly
-
-### Removed
-- Internal bearer-only API key resources from the public SDK surface
-- Public `alerts.stats()` and `alerts.verify()` helpers, which are not part of the current consumer contract
