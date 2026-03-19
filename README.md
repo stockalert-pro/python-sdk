@@ -8,6 +8,12 @@ Official Python SDK for the StockAlert.pro API.
 pip install stockalert
 ```
 
+Install the optional async dependencies when you want to use `AsyncStockAlert`:
+
+```bash
+pip install "stockalert[async]"
+```
+
 ## Quick Start
 
 ```python
@@ -18,6 +24,7 @@ client = StockAlert(api_key="sk_your_api_key")
 
 # List all alerts
 alerts = client.alerts.list()
+print(f"Found {len(alerts['data'])} alerts")
 
 # Create a new alert
 alert = client.alerts.create(
@@ -27,8 +34,8 @@ alert = client.alerts.create(
     notification="email"
 )
 
-# Update alert status
-client.alerts.update(alert.id, status="paused")
+# Pause alert
+client.alerts.pause(alert.id)
 
 # Delete alert
 client.alerts.delete(alert.id)
@@ -54,7 +61,7 @@ from stockalert import AsyncStockAlert
 async def main():
     async with AsyncStockAlert(api_key="sk_your_api_key") as client:
         alerts = await client.alerts.list()
-        print(f"Found {len(alerts.data)} alerts")
+        print(f"Found {len(alerts['data'])} alerts")
 
 asyncio.run(main())
 ```
@@ -98,17 +105,4 @@ from stockalert import StockAlert
 
 # API key from environment variable
 client = StockAlert(api_key=os.environ["STOCKALERT_API_KEY"])
-```
-
-### Async Usage
-```python
-import asyncio
-from stockalert import AsyncStockAlert
-
-async def main():
-    async with AsyncStockAlert(api_key="sk_your_api_key") as client:
-        alerts = await client.alerts.list()
-        print(f"Found {len(alerts['data'])} alerts")
-
-asyncio.run(main())
 ```

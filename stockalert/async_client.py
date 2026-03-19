@@ -10,9 +10,9 @@ except ImportError as e:
         "Install it with: pip install stockalert[async]"
     ) from e
 
-from .exceptions import APIError, AuthenticationError
+from .__version__ import __version__
+from .exceptions import APIError, AuthenticationError, ValidationError
 from .resources.async_alerts import AsyncAlertsResource
-from .resources.async_api_keys import AsyncApiKeysResource
 from .resources.async_webhooks import AsyncWebhooksResource
 
 DEFAULT_BASE_URL = "https://stockalert.pro/api/v1"
@@ -34,15 +34,19 @@ class AsyncStockAlert:
         base_url: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: int = 3,
+        bearer_token: Optional[str] = None,
     ):
         if not api_key:
-            raise AuthenticationError("API key is required")
+            raise ValidationError("API key is required")
+        if not api_key.startswith("sk_") or len(api_key) < 10:
+            raise ValidationError("Invalid API key format")
 
         self._config = {
             "api_key": api_key,
-            "base_url": base_url or DEFAULT_BASE_URL,
+            "base_url": (base_url or DEFAULT_BASE_URL).rstrip("/"),
             "timeout": timeout or DEFAULT_TIMEOUT,
             "max_retries": max_retries,
+            "bearer_token": bearer_token,
         }
 
         self._client: Optional[httpx.AsyncClient] = None
@@ -50,7 +54,6 @@ class AsyncStockAlert:
         # Initialize resources
         self.alerts = AsyncAlertsResource(self._config)
         self.webhooks = AsyncWebhooksResource(self._config)
-        self.api_keys = AsyncApiKeysResource(self._config)
 
     async def __aenter__(self) -> "AsyncStockAlert":
         # Cast config values to proper types
@@ -63,7 +66,8 @@ class AsyncStockAlert:
             timeout=timeout,
             headers={
                 "X-API-Key": api_key,
-                "User-Agent": "stockalert-python/1.0.0",
+                "User-Agent": f"stockalert-python/{__version__}",
+                "Accept": "application/json",
                 "Content-Type": "application/json",
             },
         )
@@ -71,7 +75,6 @@ class AsyncStockAlert:
         # Set client reference for resources
         self.alerts.client = self
         self.webhooks.client = self
-        self.api_keys.client = self
 
         return self
 
@@ -95,9 +98,22 @@ class AsyncStockAlert:
         params: Any = None,
         json: Any = None,
         return_full_response: bool = False,
+        auth_mode: Optional[str] = None,
     ) -> Any:
         """Make an HTTP request to the API."""
-        response = await self.client.request(method, path, params=params, json=json)
+        headers = None
+        if auth_mode == 'bearer':
+            bearer = self._config.get("bearer_token")
+            if not bearer:
+                raise AuthenticationError("Bearer token required for this endpoint")
+            # Start from client's default headers and remove X-API-Key
+            base_headers = {k.decode() if isinstance(k, (bytes, bytearray)) else str(k): v.decode() if isinstance(v, (bytes, bytearray)) else str(v)
+                            for k, v in self.client.headers.items()}
+            base_headers.pop("X-API-Key", None)
+            base_headers["Authorization"] = f"Bearer {bearer}"
+            headers = base_headers
+
+        response = await self.client.request(method, path, params=params, json=json, headers=headers)
 
         # Parse response
         try:

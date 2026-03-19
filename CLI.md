@@ -44,7 +44,13 @@ stockalert create AAPL price_above --threshold 200
 stockalert create AAPL price_below --threshold 150 --notification sms
 
 # Technical indicator alert
-stockalert create TSLA ma_touch_above --parameters '{"ma_period": 50}'
+stockalert create TSLA ma_touch_above --threshold 50
+
+# Daily reminder at market close
+stockalert create MSFT daily_reminder --parameters '{"deliveryTime": "after_market_close"}'
+
+# Insider transaction alert
+stockalert create NVDA insider_transactions --threshold 2 --parameters '{"direction": "buy", "minExecutives": 2, "windowDays": 30}'
 ```
 
 ### Get alert details

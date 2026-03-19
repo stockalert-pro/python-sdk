@@ -1,24 +1,35 @@
 """Test webhook functionality."""
+import hashlib
+import hmac
+
 from stockalert.resources.webhooks import WebhooksResource
+from stockalert.types import WebhookPayload
 
 
 class TestWebhooks:
-    """Test webhook signature verification."""
+    """Test webhook parsing and signature verification."""
 
-    def test_verify_signature_valid(self):
-        """Test valid webhook signature."""
-        payload = b'{"event":"alert.triggered","data":{"id":"123"}}'
+    def test_verify_signature_valid_with_timestamp(self):
+        """Test valid webhook signature using the current timestamped format."""
+        payload = '{"event":"alert.triggered","data":{"alert":{"id":"123","symbol":"AAPL","condition":"price_above","status":"triggered"}}}'
         secret = "webhook_secret_123"
-        # This is the expected signature for the above payload and secret
-        # signature = "sha256=8b3d9f7a8c6e5d4c3b2a1908f7e6d5c4b3a29187f6e5d4c3b2a1908f7e6d5c4"
+        timestamp = "1736180400000"
+        expected = "sha256=" + hmac.new(
+            secret.encode("utf-8"),
+            f"{timestamp}.{payload}".encode(),
+            hashlib.sha256,
+        ).hexdigest()
 
-        # Calculate actual signature
-        import hashlib
-        import hmac
+        assert WebhooksResource.verify_signature(payload, expected, secret, timestamp)
+
+    def test_verify_signature_supports_legacy_format(self):
+        """Test legacy signature verification without timestamp."""
+        payload = b'{"event":"alert.triggered"}'
+        secret = "secret"
         expected = "sha256=" + hmac.new(
             secret.encode("utf-8"),
             payload,
-            hashlib.sha256
+            hashlib.sha256,
         ).hexdigest()
 
         assert WebhooksResource.verify_signature(payload, expected, secret)
@@ -30,18 +41,26 @@ class TestWebhooks:
         signature = "sha256=invalid_signature"
 
         assert not WebhooksResource.verify_signature(payload, signature, secret)
+        assert not WebhooksResource.verify_signature("", signature, secret)
 
-    def test_verify_signature_string_payload(self):
-        """Test signature verification with string payload."""
-        payload = '{"event":"test"}'
-        secret = "secret"
+    def test_webhook_payload_normalizes_legacy_data(self):
+        """Test that legacy flat webhook payloads are normalized."""
+        payload = WebhookPayload(
+            {
+                "event": "alert.triggered",
+                "timestamp": 1736180400000,
+                "data": {
+                    "alert_id": "test-123",
+                    "symbol": "AAPL",
+                    "condition": "price_above",
+                    "threshold": 150.0,
+                    "status": "triggered",
+                    "notification": "email",
+                    "price": 155.0,
+                },
+            }
+        )
 
-        import hashlib
-        import hmac
-        expected = "sha256=" + hmac.new(
-            secret.encode("utf-8"),
-            payload.encode("utf-8"),
-            hashlib.sha256
-        ).hexdigest()
-
-        assert WebhooksResource.verify_signature(payload, expected, secret)
+        assert payload.data["alert"]["id"] == "test-123"
+        assert payload.data["alert"]["notification"] == "email"
+        assert payload.data["stock"]["price"] == 155.0

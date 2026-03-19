@@ -1,10 +1,12 @@
 # StockAlert Python SDK - Live Test Results
 
+> Historical snapshot from October 2025. The SDK has since been aligned to the current consumer contract, the live script now reads `STOCKALERT_API_KEY` from the environment, and the API key shown below has been redacted.
+
 **Datum:** 14. Oktober 2025
 **SDK Version:** 2.0.0
 **API Version:** v1
 **Test-Dauer:** ~30 Sekunden
-**API-Key:** sk_d4a622c84ff73395e4f828b2c7a2f4dec35c0cfcc599e369a20f608dcff1f614
+**API-Key:** `[redacted]`
 
 ## 📊 Test-Zusammenfassung
 
@@ -132,12 +134,12 @@ Das SDK wurde getestet für:
 1. ✅ **DONE:** Pfad-Fixes committen
 2. ✅ **DONE:** Validierungs-Fixes committen
 3. ✅ **DONE:** Return-Type-Fixes committen
-4. 📝 **TODO:** Dokumentation für `stats()` aktualisieren (API-Key-Limitation)
-5. 📝 **TODO:** Beispiele für alle getesteten Alert-Typen hinzufügen
-6. 📝 **TODO:** AsyncStockAlert ebenfalls testen
+4. ✅ **DONE:** Live-Script auf env-basierten API-Key umgestellt
+5. ✅ **DONE:** Async-Import-Fallback und Tests ergänzt
+6. 📝 **TODO:** Beispiele für alle getesteten Alert-Typen hinzufügen
 
 ### API
-1. ⚠️ **ISSUE:** `/alerts/stats` sollte API-Key-Auth unterstützen
+1. ℹ️ **INFO:** Historischer Test für `/alerts/stats` war 2025 nicht API-Key-fähig; der aktuelle Consumer nutzt diese Route nicht mehr
 2. ℹ️ **INFO:** `pause` und `activate` geben nur `{alertId, status}` zurück (nicht vollständiges Alert-Objekt)
 
 ## ✨ Fazit

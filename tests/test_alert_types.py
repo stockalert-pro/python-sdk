@@ -15,9 +15,9 @@ class TestAlertTypes:
                 "page": 1,
                 "limit": 10,
                 "total": 50,
-                "totalPages": 5
+                "total_pages": 5
             },
-            "rateLimit": {
+            "rate_limit": {
                 "limit": 1000,
                 "remaining": 999,
                 "reset": 1736180400000
@@ -43,7 +43,7 @@ class TestAlertTypes:
             "notification": "email",
             "status": "active",
             "created_at": "2024-01-07T12:00:00Z",
-            "updated_at": "2024-01-07T12:00:00Z",
+            "triggered_at": "2024-01-07T13:00:00Z",
         }
 
         alert = Alert(alert_data)

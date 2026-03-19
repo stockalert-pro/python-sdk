@@ -81,8 +81,8 @@ This is a major release with breaking changes due to the migration to the unifie
   - `stock` - Enriched stock data (on GET by ID)
 
 - PaginatedResponse updated for v1 structure:
-  - `meta.pagination` with page, limit, total, totalPages
-  - `meta.rateLimit` with rate limit info
+  - `meta.pagination` with page, limit, total, total_pages
+  - `meta.rate_limit` with rate limit info
   - Backward compatibility maintained
 
 ### Changed
@@ -172,3 +172,21 @@ client.alerts.update(alert_id, threshold=150.0, notification="email")
 - Support for all notification channels (email, SMS)
 
 [1.1.0]: https://github.com/stockalert-pro/python-sdk/releases/tag/v1.1.0
+
+## [2.1.1] - 2026-03-19
+
+### Changed
+- Public SDK surface aligned with the current consumer contract from `openapi.yaml`
+- `AlertCondition` now includes `insider_transactions`
+- `PaginatedResponse` now prefers `meta.pagination.total_pages` and `meta.rate_limit`
+- `AsyncStockAlert` is exported from the package when async dependencies are available
+
+### Fixed
+- Alert validation now matches current backend rules for `daily_reminder`, `dividend_payment`, `earnings_announcement`, `dividend_ex_date`, `ma_touch_*`, and `insider_transactions`
+- Webhook payload parsing now supports the current nested `data.alert` / `data.stock` structure while remaining backward compatible
+- Webhook signature verification supports both timestamped and legacy formats
+- `AlertsResource.delete()` now uses the shared request path correctly
+
+### Removed
+- Internal bearer-only API key resources from the public SDK surface
+- Public `alerts.stats()` and `alerts.verify()` helpers, which are not part of the current consumer contract

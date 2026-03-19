@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 Comprehensive live test for StockAlert.pro Python SDK
-Tests all major functionality with the provided API key
+Tests all major functionality with the configured API key
 """
 
+import os
 import sys
 import time
 from datetime import datetime
@@ -349,22 +350,22 @@ class TestRunner:
             else:
                 self.test_failed("Get alert history", str(e))
 
-    # ===== Alert Statistics Tests =====
+    # ===== Listing Metadata Tests =====
 
-    def test_alert_statistics(self):
-        """Test alert statistics"""
-        self.log("\n=== Testing Alert Statistics ===", "TEST")
+    def test_alert_listing_metadata(self):
+        """Test list metadata on supported alert endpoints."""
+        self.log("\n=== Testing Alert Listing Metadata ===", "TEST")
 
         try:
-            response = self.client.alerts.stats()
-            if response and "data" in response:
-                stats = response["data"]
-                self.log(f"Stats: {stats}", "INFO")
-                self.test_passed("Get alert statistics")
+            response = self.client.alerts.list(limit=1)
+            if response and "meta" in response:
+                pagination = response["meta"].get("pagination", {})
+                self.log(f"List metadata: {pagination}", "INFO")
+                self.test_passed("Get alert listing metadata")
             else:
-                self.test_failed("Get alert statistics", "Invalid response format")
+                self.test_failed("Get alert listing metadata", "Invalid response format")
         except Exception as e:
-            self.test_failed("Get alert statistics", str(e))
+            self.test_failed("Get alert listing metadata", str(e))
 
     # ===== Pagination Tests =====
 
@@ -486,7 +487,7 @@ class TestRunner:
             self.test_alert_retrieval()
             self.test_alert_updates()
             self.test_alert_history()
-            self.test_alert_statistics()
+            self.test_alert_listing_metadata()
             self.test_pagination()
             self.test_error_handling()
             self.test_alert_deletion()
@@ -517,10 +518,13 @@ class TestRunner:
 
 def main():
     """Main test function"""
-    API_KEY = "sk_d4a622c84ff73395e4f828b2c7a2f4dec35c0cfcc599e369a20f608dcff1f614"
+    api_key = os.getenv("STOCKALERT_API_KEY")
+    if not api_key:
+        print("❌ Missing STOCKALERT_API_KEY environment variable")
+        sys.exit(1)
 
     try:
-        runner = TestRunner(API_KEY)
+        runner = TestRunner(api_key)
         success = runner.run_all_tests()
         sys.exit(0 if success else 1)
     except Exception as e:

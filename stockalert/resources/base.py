@@ -52,6 +52,8 @@ class BaseResource:
         path: str,
         params: Optional[Dict[str, Any]] = None,
         json_data: Optional[Dict[str, Any]] = None,
+        auth_mode: Optional[str] = None,
+        return_full_response: bool = False,
         **kwargs: Any
     ) -> Dict[str, Any]:
         # Ensure proper URL construction
@@ -64,12 +66,24 @@ class BaseResource:
             params = {k: v for k, v in params.items() if v is not None}
 
         try:
+            # Optionally override headers for Bearer-only endpoints
+            request_headers = None
+            if auth_mode == 'bearer':
+                # Build a fresh headers dict without X-API-Key
+                request_headers = dict(self._session.headers)
+                request_headers.pop("X-API-Key", None)
+                bearer = self._config.get("bearer_token")
+                if not bearer:
+                    raise AuthenticationError("Bearer token required for this endpoint")
+                request_headers["Authorization"] = f"Bearer {bearer}"
+
             response = self._session.request(
                 method=method,
                 url=url,
                 params=params,
                 json=json_data,
                 timeout=self._config.get("timeout", 30),
+                headers=request_headers,
                 **kwargs
             )
 
@@ -86,6 +100,9 @@ class BaseResource:
 
             # Parse JSON response
             json_response = response.json()
+
+            if return_full_response:
+                return json_response  # type: ignore[no-any-return]
 
             # For v1 API envelope format, return data field
             if "data" in json_response:

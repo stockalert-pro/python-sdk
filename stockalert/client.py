@@ -31,6 +31,7 @@ class StockAlert:
         timeout: Optional[int] = None,
         max_retries: Optional[int] = None,
         debug: bool = False,
+        bearer_token: Optional[str] = None,
     ):
         """Initialize the StockAlert client."""
         if not api_key:
@@ -54,16 +55,16 @@ class StockAlert:
             "Content-Type": "application/json"
         })
 
-        # Initialize resources
-        self.alerts = AlertsResource(self)
-
-        # Create config dict for WebhooksResource
+        # Create config dict for resources using BaseResource
         config = {
             "api_key": api_key,
             "base_url": self.base_url,
             "timeout": self.timeout,
-            "max_retries": self.max_retries
+            "max_retries": self.max_retries,
+            "bearer_token": bearer_token,
         }
+        # Initialize resources
+        self.alerts = AlertsResource(config)
         self.webhooks = WebhooksResource(config)
 
         # Rate limit tracking

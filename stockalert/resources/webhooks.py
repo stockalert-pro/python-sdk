@@ -17,7 +17,7 @@ class WebhooksResource(BaseResource):
         Returns:
             List of webhooks
         """
-        return self._request("GET", "/api/v1/webhooks")
+        return self._request("GET", "/webhooks")
 
     def get(self, webhook_id: str) -> ApiResponse:
         """
@@ -29,7 +29,7 @@ class WebhooksResource(BaseResource):
         Returns:
             Webhook details
         """
-        return self._request("GET", f"/api/v1/webhooks/{webhook_id}")
+        return self._request("GET", f"/webhooks/{webhook_id}")
 
     def create(self, url: str, events: Optional[List[str]] = None) -> ApiResponse:
         """
@@ -50,7 +50,7 @@ class WebhooksResource(BaseResource):
             "events": events
         }
 
-        return self._request("POST", "/api/v1/webhooks", json_data=data)
+        return self._request("POST", "/webhooks", json_data=data)
 
     def delete(self, webhook_id: str) -> ApiResponse:
         """
@@ -62,7 +62,7 @@ class WebhooksResource(BaseResource):
         Returns:
             Success message
         """
-        return self._request("DELETE", f"/api/v1/webhooks/{webhook_id}")
+        return self._request("DELETE", f"/webhooks/{webhook_id}")
 
     def test(self, url: str, secret: str) -> ApiResponse:
         """
@@ -79,13 +79,14 @@ class WebhooksResource(BaseResource):
             "url": url,
             "secret": secret
         }
-        return self._request("POST", "/api/v1/webhooks/test", json_data=data)
+        return self._request("POST", "/webhooks/test", json_data=data)
 
     @staticmethod
     def verify_signature(
         payload: Union[str, bytes],
         signature: str,
-        secret: str
+        secret: str,
+        timestamp: Optional[Union[str, int]] = None,
     ) -> bool:
         """
         Verify webhook signature
@@ -104,17 +105,20 @@ class WebhooksResource(BaseResource):
             >>> if WebhooksResource.verify_signature(payload, signature, secret):
             ...     # Process webhook
         """
-        if isinstance(payload, str):
-            payload = payload.encode("utf-8")
+        if not payload or not signature or not secret:
+            return False
 
-        expected_signature = hmac.new(
-            secret.encode("utf-8"),
-            payload,
-            hashlib.sha256
-        ).hexdigest()
+        payload_bytes = payload.encode("utf-8") if isinstance(payload, str) else payload
+        payload_text = payload if isinstance(payload, str) else payload.decode("utf-8")
+
+        signing_payload = payload_bytes
+        if timestamp not in (None, ""):
+            signing_payload = f"{timestamp}.{payload_text}".encode()
+
+        expected_signature = hmac.new(secret.encode("utf-8"), signing_payload, hashlib.sha256).hexdigest()
 
         # Support both formats: "sha256=..." and raw hex
         if signature.startswith("sha256="):
             signature = signature[7:]  # Remove "sha256=" prefix
 
-        return signature == expected_signature
+        return hmac.compare_digest(signature, expected_signature)
