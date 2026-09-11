@@ -1,10 +1,10 @@
 """Async watchlist resource for StockAlert SDK."""
 from typing import Any, Dict, List, Optional
 
-from ..exceptions import ValidationError
+from .watchlist_base import WatchlistResourceBase
 
 
-class AsyncWatchlistResource:
+class AsyncWatchlistResource(WatchlistResourceBase):
     """Async watchlist resource."""
 
     def __init__(self, config: Dict[str, Any]) -> None:
@@ -24,23 +24,13 @@ class AsyncWatchlistResource:
         notes: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Add a stock to the watchlist."""
-        if not stock_symbol or not str(stock_symbol).strip():
-            raise ValidationError("stock_symbol is required")
-        if intention not in ("buy", "sell"):
-            raise ValidationError("intention must be either buy or sell")
-
-        payload: Dict[str, Any] = {
-            "stock_symbol": str(stock_symbol).strip().upper(),
-            "intention": intention,
-        }
-        if stock_name is not None:
-            payload["stock_name"] = stock_name
-        if target_price is not None:
-            payload["target_price"] = target_price
-        if notes is not None:
-            payload["notes"] = notes
-
-        return await self.client._request("POST", "/watchlist", json=payload)
+        return await self.client._request(
+            "POST",
+            "/watchlist",
+            json=self._create_payload(
+                stock_symbol, intention, stock_name, target_price, notes
+            ),
+        )
 
     async def update(
         self,
@@ -51,28 +41,16 @@ class AsyncWatchlistResource:
         auto_alerts_enabled: Optional[bool] = None,
     ) -> Dict[str, Any]:
         """Update a watchlist item."""
-        if not item_id:
-            raise ValidationError("Watchlist item ID is required")
-
-        payload: Dict[str, Any] = {}
-        if target_price is not None:
-            payload["target_price"] = target_price
-        if notes is not None:
-            payload["notes"] = notes
-        if is_active is not None:
-            payload["is_active"] = is_active
-        if auto_alerts_enabled is not None:
-            payload["auto_alerts_enabled"] = auto_alerts_enabled
-
-        if not payload:
-            raise ValidationError("Provide at least one field to update")
-
-        return await self.client._request("PATCH", f"/watchlist/{item_id}", json=payload)
+        payload = self._update_payload(
+            item_id, target_price, notes, is_active, auto_alerts_enabled
+        )
+        return await self.client._request(
+            "PATCH", f"/watchlist/{item_id}", json=payload
+        )
 
     async def delete(self, item_id: str) -> Dict[str, Any]:
         """Remove a watchlist item."""
-        if not item_id:
-            raise ValidationError("Watchlist item ID is required")
+        self._require_item_id(item_id)
         return await self.client._request("DELETE", f"/watchlist/{item_id}")
 
     async def swap_intention(
@@ -82,19 +60,8 @@ class AsyncWatchlistResource:
         stock_symbol: str,
     ) -> Dict[str, Any]:
         """Swap buy/sell intention and reorder the watchlist."""
-        if not item_id:
-            raise ValidationError("item_id is required")
-        if not stock_symbol or not str(stock_symbol).strip():
-            raise ValidationError("stock_symbol is required")
-        if new_intention not in ("buy", "sell"):
-            raise ValidationError("new_intention must be either buy or sell")
-
         return await self.client._request(
             "PUT",
             "/watchlist/order",
-            json={
-                "item_id": item_id,
-                "new_intention": new_intention,
-                "stock_symbol": str(stock_symbol).strip().upper(),
-            },
+            json=self._swap_payload(item_id, new_intention, stock_symbol),
         )
