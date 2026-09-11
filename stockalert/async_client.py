@@ -13,10 +13,12 @@ except ImportError as e:
 from .__version__ import __version__
 from .exceptions import APIError, AuthenticationError, ValidationError
 from .resources.async_alerts import AsyncAlertsResource
+from .resources.async_stocks import AsyncStocksResource
 from .resources.async_user import AsyncUserResource
+from .resources.async_watchlist import AsyncWatchlistResource
 from .resources.async_webhooks import AsyncWebhooksResource
 
-DEFAULT_BASE_URL = "https://stockalert.pro/api/v1"
+DEFAULT_BASE_URL = "https://api.stockalert.pro/v1"
 DEFAULT_TIMEOUT = 30
 
 
@@ -56,6 +58,8 @@ class AsyncStockAlert:
         self.alerts = AsyncAlertsResource(self._config)
         self.user = AsyncUserResource(self._config)
         self.webhooks = AsyncWebhooksResource(self._config)
+        self.stocks = AsyncStocksResource(self._config)
+        self.watchlist = AsyncWatchlistResource(self._config)
 
     async def __aenter__(self) -> "AsyncStockAlert":
         # Cast config values to proper types
@@ -78,6 +82,8 @@ class AsyncStockAlert:
         self.alerts.client = self
         self.user.client = self
         self.webhooks.client = self
+        self.stocks.client = self
+        self.watchlist.client = self
 
         return self
 

@@ -5,6 +5,16 @@ All notable changes to the StockAlert Python SDK will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-09-11
+
+### Changed
+- Default API base URL is now `https://api.stockalert.pro/v1`. Existing `base_url` values including `https://stockalert.pro/api/v1` still work.
+
+### Added
+- `social_buzz` alert type (`parameters.direction` must be `rising` or `falling`; no threshold).
+- `client.stocks.retrieve(symbol, fields=...)` for `GET /stocks/{symbol}`.
+- Watchlist helpers: `list`, `create`, `update`, `delete`, and `swap_intention`.
+
 ## [2.0.4] - 2026-03-19
 
 ### Fixed
