@@ -119,6 +119,27 @@ def test_alert_validation_current_parameters():
         }
     )
 
+    with pytest.raises(ValidationError, match="social_buzz direction must be rising or falling"):
+        resource._validate_create_request({"symbol": "TSLA", "condition": "social_buzz"})
+
+    with pytest.raises(ValidationError, match="social_buzz does not use a threshold value"):
+        resource._validate_create_request(
+            {
+                "symbol": "TSLA",
+                "condition": "social_buzz",
+                "threshold": 10,
+                "parameters": {"direction": "rising"},
+            }
+        )
+
+    resource._validate_create_request(
+        {
+            "symbol": "TSLA",
+            "condition": "social_buzz",
+            "parameters": {"direction": "rising"},
+        }
+    )
+
 
 def test_client_validation():
     """Test client validation."""

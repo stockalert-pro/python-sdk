@@ -14,14 +14,16 @@ from .exceptions import (
     ValidationError,
 )
 from .resources.alerts import AlertsResource
+from .resources.stocks import StocksResource
 from .resources.user import UserResource
+from .resources.watchlist import WatchlistResource
 from .resources.webhooks import WebhooksResource
 
 
 class StockAlert:
     """StockAlert API client."""
 
-    DEFAULT_BASE_URL = "https://stockalert.pro/api/v1"
+    DEFAULT_BASE_URL = "https://api.stockalert.pro/v1"
     DEFAULT_TIMEOUT = 30
     DEFAULT_MAX_RETRIES = 3
 
@@ -68,6 +70,8 @@ class StockAlert:
         self.alerts = AlertsResource(config)
         self.user = UserResource(config)
         self.webhooks = WebhooksResource(config)
+        self.stocks = StocksResource(config)
+        self.watchlist = WatchlistResource(config)
 
         # Rate limit tracking
         self._rate_limit_reset: Dict[str, float] = {}

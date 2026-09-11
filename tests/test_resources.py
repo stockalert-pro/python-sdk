@@ -61,6 +61,40 @@ def test_sync_client_initializes_user_resource():
     """Test that the sync client exposes the user resource."""
     client = StockAlert(api_key="sk_test_valid_key")
     assert client.user is not None
+    assert client.stocks is not None
+    assert client.watchlist is not None
+
+
+def test_stocks_retrieve_calls_symbol_endpoint():
+    """Test that stocks.retrieve hits GET /stocks/{symbol}."""
+    client = StockAlert(api_key="sk_test_valid_key")
+
+    with patch.object(client.stocks, "_request", return_value={"symbol": "AAPL"}) as request:
+        stock = client.stocks.retrieve("aapl", fields=["last_price"])
+
+    assert stock["symbol"] == "AAPL"
+    request.assert_called_once_with(
+        "GET",
+        "/stocks/AAPL",
+        params={"fields": "last_price"},
+    )
+
+
+def test_watchlist_create_normalizes_symbol():
+    """Test that watchlist.create uppercases the ticker."""
+    client = StockAlert(api_key="sk_test_valid_key")
+
+    with patch.object(
+        client.watchlist, "_request", return_value={"id": "wl_1", "stock_symbol": "NVDA"}
+    ) as request:
+        item = client.watchlist.create(stock_symbol="nvda", intention="buy")
+
+    assert item["id"] == "wl_1"
+    request.assert_called_once_with(
+        "POST",
+        "/watchlist",
+        json_data={"stock_symbol": "NVDA", "intention": "buy"},
+    )
 
 
 def test_alerts_list_returns_paginated_response():
@@ -97,6 +131,8 @@ async def test_async_client_exposes_user_resource_and_typed_list_results():
 
     async with AsyncStockAlert(api_key="sk_test_valid_key") as client:
         assert client.user is not None
+        assert client.stocks is not None
+        assert client.watchlist is not None
 
         with patch.object(client, "_request", new=AsyncMock(return_value=make_paginated_payload())):
             response = await client.alerts.list(limit=1)

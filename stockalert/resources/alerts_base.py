@@ -52,7 +52,7 @@ class AlertsResourceBase:
         # Conditions that don't use threshold
         no_threshold = [
             "new_high", "new_low", "ma_crossover_golden", "ma_crossover_death",
-            "daily_reminder", "dividend_payment"
+            "daily_reminder", "dividend_payment", "social_buzz"
         ]
 
         if condition in requires_threshold and threshold is None:
@@ -117,3 +117,8 @@ class AlertsResourceBase:
                 raise ValidationError(
                     "insider_transactions openMarketOnly must be a boolean"
                 )
+
+        if condition == "social_buzz":
+            direction = params.get("direction")
+            if direction not in ("rising", "falling"):
+                raise ValidationError("social_buzz direction must be rising or falling")

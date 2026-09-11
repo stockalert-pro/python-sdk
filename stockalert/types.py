@@ -25,6 +25,7 @@ AlertCondition = Literal[
     "dividend_ex_date",
     "dividend_payment",
     "insider_transactions",
+    "social_buzz",
 ]
 
 NotificationChannel = Literal["email", "sms"]
